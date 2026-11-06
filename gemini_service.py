@@ -1,11 +1,11 @@
-
 """
 gemini_service.py
------------------
-EnviroLearn AI services.
+─────────────────
+EnviroLearn AI services using Google Gemini API only.
+No torch, no CLIP, no transformers needed.
 
-1. Gemini API: Dynamic video quiz generation.
-2. CLIP + PyTorch: Environmental challenge image verification.
+1. generate_quiz()  – Dynamic MCQ generation via Gemini text
+2. verify_image()   – Challenge photo verification via Gemini Vision
 """
 
 import os
@@ -15,89 +15,33 @@ import logging
 
 from dotenv import load_dotenv
 from PIL import Image
-
-import torch
-from transformers import CLIPModel, CLIPProcessor
-
-from google import genai
+import google.generativeai as genai
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 
-# ============================================================
-# CONFIGURATION
-# ============================================================
+# ── Gemini model (flash = free tier, fast) ────────────────────────
+GEMINI_MODEL = "gemini-1.5-flash"
 
-GEMINI_MODEL = "gemini-3.8-flash"
-CLIP_MODEL_NAME = "openai/clip-vit-base-patch32"
+# ── Lazy client ───────────────────────────────────────────────────
+_model = None
 
-# Lazy-loaded, reused model instances
-_gemini_client = None
-_clip_model = None
-_clip_processor = None
-_clip_device = None
-
-
-# ============================================================
-# GEMINI INITIALIZATION
-# ============================================================
-
-def _get_gemini_client():
-    global _gemini_client
-
-    if _gemini_client is not None:
-        return _gemini_client
-
-    api_key = os.getenv("GEMINI_API_KEY")
-
+def _get_model():
+    global _model
+    if _model is not None:
+        return _model
+    api_key = os.environ.get("GEMINI_API_KEY", "")
     if not api_key:
-        raise EnvironmentError(
-            "GEMINI_API_KEY is not configured in the .env file."
-        )
-
-    _gemini_client = genai.Client(api_key=api_key)
-
-    return _gemini_client
+        raise EnvironmentError("GEMINI_API_KEY is not set in environment variables.")
+    genai.configure(api_key=api_key)
+    _model = genai.GenerativeModel(GEMINI_MODEL)
+    return _model
 
 
-# ============================================================
-# CLIP INITIALIZATION
-# ============================================================
-
-def _get_clip_model():
-    global _clip_model, _clip_processor, _clip_device
-
-    if _clip_model is None:
-
-        logger.info("Loading pretrained CLIP model...")
-
-        _clip_device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
-
-        _clip_processor = CLIPProcessor.from_pretrained(
-            CLIP_MODEL_NAME
-        )
-
-        _clip_model = CLIPModel.from_pretrained(
-            CLIP_MODEL_NAME
-        )
-
-        _clip_model.to(_clip_device)
-        _clip_model.eval()
-
-        logger.info(
-            "CLIP model loaded successfully on %s",
-            _clip_device
-        )
-
-    return _clip_model, _clip_processor, _clip_device
-
-
-# ============================================================
-# VIDEO TOPICS
-# ============================================================
+# ══════════════════════════════════════════════════════════════════
+# VIDEO TOPIC DESCRIPTIONS
+# ══════════════════════════════════════════════════════════════════
 
 VIDEO_TOPICS = {
     1: {
@@ -110,7 +54,6 @@ VIDEO_TOPICS = {
             "recycling, using public transport, reducing plastic use."
         )
     },
-
     2: {
         "name": "Global Warming",
         "description": (
@@ -122,7 +65,6 @@ VIDEO_TOPICS = {
             "renewable energy, reforestation, and reducing emissions."
         )
     },
-
     3: {
         "name": "Biodiversity",
         "description": (
@@ -137,341 +79,189 @@ VIDEO_TOPICS = {
 }
 
 
-# ============================================================
-# ENVIRONMENTAL CHALLENGE DESCRIPTIONS
-# ============================================================
+# ══════════════════════════════════════════════════════════════════
+# CHALLENGE DESCRIPTIONS (for image verification)
+# ══════════════════════════════════════════════════════════════════
 
 CHALLENGE_DESCRIPTIONS = {
-    1: "Cleaning a personal study area or desk, making it neat and tidy.",
-
-    2: "Segregating waste into separate bins for wet waste, dry waste, and e-waste.",
-
-    3: "Saving energy by switching off lights, fans, or electronics when not in use.",
-
-    4: "Watering or caring for a plant at home or school.",
-
-    5: "Participating in a cleanup drive and collecting trash from a public area.",
-
-    6: "Organizing a school bag neatly with books and stationery.",
-
-    7: "Saving water by turning off taps, using a bucket instead of a hose, or reusing water.",
-
-    8: "Using a cloth bag instead of a plastic bag while shopping or carrying items."
+    1: "Student has cleaned their personal study area or desk, making it neat and tidy.",
+    2: "Student is segregating waste into separate bins for wet waste, dry waste, and e-waste.",
+    3: "Student is saving energy by switching off lights, fans, or electronics when not in use.",
+    4: "Student is watering or caring for a plant at home or school.",
+    5: "Student participated in a cleanup drive, collecting trash from a public area.",
+    6: "Student has organized their school bag neatly with books and stationery in order.",
+    7: "Student is saving water by turning off taps, using a bucket instead of a hose, or reusing water.",
+    8: "Student is using a cloth bag instead of a plastic bag while shopping or carrying items.",
 }
 
 
-# ============================================================
-# 1. DYNAMIC VIDEO QUIZ GENERATION USING GEMINI
-# ============================================================
+# ══════════════════════════════════════════════════════════════════
+# 1. DYNAMIC QUIZ GENERATION
+# ══════════════════════════════════════════════════════════════════
 
-def generate_quiz(
-    video_id: int,
-    previous_questions: list[str] | None = None
-) -> list[dict]:
+def generate_quiz(video_id: int, previous_questions: list | None = None) -> list:
+    """
+    Generate 5 MCQs for the given video topic using Gemini.
+
+    Parameters
+    ----------
+    video_id : int          1=Pollution, 2=GlobalWarming, 3=Biodiversity
+    previous_questions :    list of past question strings to avoid repeating
+
+    Returns
+    -------
+    list of dicts: [{question, options:[4], correct_index, explanation}]
+    """
 
     topic = VIDEO_TOPICS.get(video_id)
-
     if not topic:
         raise ValueError(f"Unknown video_id: {video_id}")
 
     avoid_block = ""
-
     if previous_questions:
-        formatted = "\n".join(
-            f"- {q}" for q in previous_questions[:15]
-        )
+        formatted = "\n".join(f"- {q}" for q in previous_questions[:15])
+        avoid_block = f"\n\nDo NOT repeat or paraphrase these previously used questions:\n{formatted}"
 
-        avoid_block = f"""
-        Do not repeat or closely paraphrase these previous questions:
+    prompt = f"""You are an educational quiz generator for school students (Grade 5-8).
 
-        {formatted}
-        """
+Topic: {topic['name']}
+Description: {topic['description']}
 
-    prompt = f"""
-    You are an educational quiz generator for school students
-    in Grades 5-8.
+Generate exactly 5 multiple-choice questions about this topic.{avoid_block}
 
-    Topic: {topic['name']}
+Requirements:
+- Each question must have exactly 4 options (A, B, C, D)
+- Exactly 1 correct answer per question
+- Simple language suitable for school students
+- Include a 1-2 sentence explanation for the correct answer
+- All facts must be accurate
 
-    Topic description:
-    {topic['description']}
+Respond with ONLY a valid JSON array. No markdown, no code fences, no extra text.
 
-    Generate exactly FIVE different multiple-choice questions.
+[
+  {{
+    "question": "Question text here?",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "correct_index": 0,
+    "explanation": "Explanation of why this answer is correct."
+  }}
+]"""
 
-    {avoid_block}
+    model = _get_model()
+    response = model.generate_content(prompt)
+    raw = response.text.strip()
 
-    Requirements:
-
-    1. Each question must have exactly four options.
-    2. Only one option must be correct.
-    3. Questions must test understanding and application.
-    4. Use simple language suitable for school students.
-    5. Avoid duplicate or very similar questions.
-    6. Include a short explanation for each answer.
-    7. Ensure all questions are factually correct.
-
-    Return ONLY a valid JSON array.
-
-    Format:
-
-    [
-        {{
-            "question": "Question text?",
-            "options": [
-                "Option A",
-                "Option B",
-                "Option C",
-                "Option D"
-            ],
-            "correct_index": 0,
-            "explanation": "Explanation here."
-        }}
-    ]
-    """
-
-    client = _get_gemini_client()
-
-    response = client.models.generate_content(
-        model=GEMINI_MODEL,
-        contents=prompt,
-        config={
-            "response_mime_type": "application/json"
-        }
-    )
-
-    raw = response.text
-
-    if not raw:
-        raise ValueError("Gemini returned an empty response.")
-
-    raw = raw.strip()
-
+    # Strip markdown code fences if present
     if raw.startswith("```"):
         raw = raw.split("```")[1]
-
         if raw.startswith("json"):
             raw = raw[4:]
-
         raw = raw.strip()
 
     try:
         questions = json.loads(raw)
-
     except json.JSONDecodeError as exc:
-        logger.error(
-            "Invalid Gemini JSON response: %s",
-            raw[:500]
-        )
-
-        raise ValueError(
-            "Gemini returned invalid quiz JSON."
-        ) from exc
+        logger.error("Gemini returned non-JSON: %s", raw[:300])
+        raise ValueError(f"Gemini returned invalid JSON: {exc}") from exc
 
     if not isinstance(questions, list):
         raise ValueError("Gemini response is not a JSON list.")
 
     validated = []
-
-    for i, q in enumerate(questions[:5]):
-
+    for q in questions[:5]:
         if not isinstance(q, dict):
             continue
-
-        question = q.get("question")
-        options = q.get("options")
-        correct = q.get("correct_index")
-        explanation = q.get("explanation", "")
-
-        if not isinstance(question, str) or not question.strip():
+        opts    = q.get("options", [])
+        correct = q.get("correct_index", 0)
+        if not isinstance(opts, list) or len(opts) != 4:
             continue
-
-        if not isinstance(options, list) or len(options) != 4:
+        if not isinstance(correct, int) or correct not in range(4):
             continue
-
-        if not all(isinstance(o, str) and o.strip() for o in options):
-            continue
-
-        if (
-            isinstance(correct, bool)
-            or not isinstance(correct, int)
-            or correct not in range(4)
-        ):
-            continue
-
         validated.append({
-            "question": question.strip(),
-            "options": options,
+            "question":      str(q.get("question", "")),
+            "options":       [str(o) for o in opts],
             "correct_index": correct,
-            "explanation": str(explanation)
+            "explanation":   str(q.get("explanation", "")),
         })
 
     if len(validated) < 3:
-        raise ValueError(
-            f"Only {len(validated)} valid questions generated."
-        )
+        raise ValueError(f"Only {len(validated)} valid questions generated (need at least 3).")
 
     return validated
 
 
-# ============================================================
-# 2. CLIP IMAGE VERIFICATION
-# ============================================================
+# ══════════════════════════════════════════════════════════════════
+# 2. IMAGE VERIFICATION VIA GEMINI VISION
+# ══════════════════════════════════════════════════════════════════
 
 def verify_image(image_bytes: bytes, challenge_id: int) -> dict:
     """
-    Verify whether an uploaded photograph visually matches
-    an environmental challenge using CLIP.
+    Verify whether an uploaded photo matches the environmental challenge
+    using Gemini Vision multimodal API.
 
-    Returns:
-        {
-            "status": "relevant" | "not_relevant" |
-                      "uncertain" | "ai_unavailable",
-            "confidence": float,
-            "similarity_score": float,
-            "explanation": str
-        }
-
-    Note:
-        CLIP similarity is not a calibrated probability
-        and does not prove that an activity was performed.
+    Returns
+    -------
+    dict:
+        status      : "relevant" | "not_relevant" | "uncertain" | "ai_unavailable"
+        confidence  : float 0.0–1.0
+        explanation : str
     """
 
-    description = CHALLENGE_DESCRIPTIONS.get(challenge_id)
-
-    if not description:
-        return {
-            "status": "uncertain",
-            "confidence": 0.0,
-            "similarity_score": 0.0,
-            "explanation": "Unknown challenge ID."
-        }
+    description = CHALLENGE_DESCRIPTIONS.get(challenge_id, "An environmental activity.")
 
     try:
+        model  = _get_model()
+        image  = Image.open(io.BytesIO(image_bytes))
 
-        # Load model only once
-        model, processor, device = _get_clip_model()
+        prompt = f"""You are verifying a student's environmental challenge photo submission.
 
-        # Read uploaded image
-        image = Image.open(
-            io.BytesIO(image_bytes)
-        ).convert("RGB")
+The student was assigned this challenge:
+"{description}"
 
-        # Positive and negative text descriptions
-        positive_prompts = [
-            f"A photograph showing {description}",
-            f"A student performing this environmental activity: {description}",
-            f"An image demonstrating {description}"
-        ]
+Look at the uploaded image carefully and determine:
+- Does it clearly show the student completing or attempting the described challenge?
 
-        negative_prompts = [
-            "A photograph showing an unrelated everyday activity.",
-            "A photograph showing something unrelated to the assigned challenge.",
-            "A photograph of an unrelated object, place, or scene."
-        ]
+Respond with ONLY a valid JSON object. No extra text, no markdown.
 
-        all_prompts = positive_prompts + negative_prompts
+{{
+  "status": "relevant" or "not_relevant" or "uncertain",
+  "confidence": <float between 0.0 and 1.0>,
+  "explanation": "<1-2 sentence explanation>"
+}}
 
-        # Process image and text
-        inputs = processor(
-            text=all_prompts,
-            images=image,
-            return_tensors="pt",
-            padding=True
-        )
+Use:
+  "relevant"     – image clearly matches the challenge
+  "not_relevant" – image clearly does not match
+  "uncertain"    – cannot determine from image alone"""
 
-        inputs = {
-            key: value.to(device)
-            for key, value in inputs.items()
-        }
+        response = model.generate_content([prompt, image])
+        raw = response.text.strip()
 
-        # Generate normalized embeddings
-        with torch.inference_mode():
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+            raw = raw.strip()
 
-            image_features = model.get_image_features(
-                pixel_values=inputs["pixel_values"]
-            )
-
-            text_features = model.get_text_features(
-                input_ids=inputs["input_ids"],
-                attention_mask=inputs.get("attention_mask")
-            )
-
-            image_features = torch.nn.functional.normalize(
-                image_features, p=2, dim=-1
-            )
-
-            text_features = torch.nn.functional.normalize(
-                text_features, p=2, dim=-1
-            )
-
-            similarities = (
-                image_features @ text_features.T
-            )[0]
-
-        positive_scores = similarities[:len(positive_prompts)]
-        negative_scores = similarities[len(positive_prompts):]
-
-        positive_score = positive_scores.max().item()
-        negative_score = negative_scores.max().item()
-
-        margin = positive_score - negative_score
-
-        # Starter thresholds only.
-        # Calibrate using a representative validation dataset.
-        if positive_score >= 0.25 and margin >= 0.03:
-
-            status = "relevant"
-
-            explanation = (
-                "The uploaded photograph appears visually "
-                "consistent with the assigned challenge."
-            )
-
-        elif negative_score > positive_score and margin <= -0.03:
-
-            status = "not_relevant"
-
-            explanation = (
-                "The uploaded photograph does not appear "
-                "to match the assigned environmental challenge."
-            )
-
-        else:
-
+        result     = json.loads(raw)
+        status     = result.get("status", "uncertain")
+        if status not in ("relevant", "not_relevant", "uncertain"):
             status = "uncertain"
-
-            explanation = (
-                "The image could not be confidently matched. "
-                "Teacher verification is recommended."
-            )
-
-        # Legacy confidence field retained for compatibility.
-        # This is a transformed similarity value, not probability.
-        confidence = max(
-            0.0,
-            min(1.0, (positive_score + 1.0) / 2.0)
-        )
+        confidence = float(result.get("confidence", 0.5))
+        confidence = max(0.0, min(1.0, confidence))
 
         return {
-            "status": status,
-            "confidence": round(confidence, 4),
-            "similarity_score": round(positive_score, 4),
-            "explanation": explanation
+            "status":      status,
+            "confidence":  confidence,
+            "explanation": str(result.get("explanation", "")),
         }
+
+    except EnvironmentError as exc:
+        logger.error("Gemini API key missing: %s", exc)
+        return {"status": "ai_unavailable", "confidence": 0.0,
+                "explanation": "AI verification unavailable — API key not set."}
 
     except Exception as exc:
-
-        logger.exception(
-            "CLIP image verification failed: %s",
-            exc
-        )
-
-        return {
-            "status": "ai_unavailable",
-            "confidence": 0.0,
-            "similarity_score": 0.0,
-            "explanation": (
-                "Image verification is temporarily unavailable. "
-                "Submission should be forwarded for teacher review."
-            )
-        }
+        logger.error("Gemini image verification failed: %s", exc)
+        return {"status": "ai_unavailable", "confidence": 0.0,
+                "explanation": "AI verification temporarily unavailable. Forwarded to teacher for manual review."}

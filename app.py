@@ -19,8 +19,12 @@ from models import (
     DynamicQuizAttempt,
     VIDEO_CATALOGUE, CHALLENGE_CATALOGUE
 )
+<<<<<<< HEAD
 import gemini_service1
 import google.generativeai as genai
+=======
+import gemini_service
+>>>>>>> f7db65ff1de08f21bc1944c2a08e356aa2413688
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret123')
@@ -28,7 +32,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database_new3.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
-# Initialize all database tables
+# Auto-create all tables on startup (safe — skips existing tables)
 with app.app_context():
     db.create_all()
 
@@ -1113,4 +1117,5 @@ def award_badges(user_id, challenge_id):
 # ── RUN ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
