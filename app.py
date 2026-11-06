@@ -19,11 +19,9 @@ from models import (
     DynamicQuizAttempt,
     VIDEO_CATALOGUE, CHALLENGE_CATALOGUE
 )
-<<<<<<< HEAD
+
 import gemini_service1
 import google.generativeai as genai
-=======
->>>>>>> f7db65ff1de08f21bc1944c2a08e356aa2413688
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret123')
