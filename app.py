@@ -21,8 +21,6 @@ from models import (
 )
 
 import gemini_service1
-import google.generativeai as genai
-
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret123')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database_new3.db'

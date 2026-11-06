@@ -1,6 +1,6 @@
 
 """
-gemini_service.py
+gemini_service1.py
 -----------------
 EnviroLearn AI services.
 
@@ -9,15 +9,15 @@ EnviroLearn AI services.
 """
 
 import os
-import io
+# import io  # Used only by disabled CLIP image verification
 import json
 import logging
 
 from dotenv import load_dotenv
-from PIL import Image
-
-import torch
-from transformers import CLIPModel, CLIPProcessor
+# CLIP/PyTorch imports disabled:
+# from PIL import Image
+# import torch
+# from transformers import CLIPModel, CLIPProcessor
 
 from google import genai
 
@@ -30,13 +30,14 @@ logger = logging.getLogger(__name__)
 # ============================================================
 
 GEMINI_MODEL = "gemini-3.8-flash"
-CLIP_MODEL_NAME = "openai/clip-vit-base-patch32"
+# CLIP_MODEL_NAME = "openai/clip-vit-base-patch32"
 
-# Lazy-loaded, reused model instances
+# Gemini client instance
 _gemini_client = None
-_clip_model = None
-_clip_processor = None
-_clip_device = None
+# CLIP/PyTorch model instances disabled:
+# _clip_model = None
+# _clip_processor = None
+# _clip_device = None
 
 
 # ============================================================
@@ -61,38 +62,38 @@ def _get_gemini_client():
     return _gemini_client
 
 
-# ============================================================
-# CLIP INITIALIZATION
-# ============================================================
+# # ============================================================
+# # CLIP INITIALIZATION
+# # ============================================================
 
-def _get_clip_model():
-    global _clip_model, _clip_processor, _clip_device
+# def _get_clip_model():
+#     global _clip_model, _clip_processor, _clip_device
 
-    if _clip_model is None:
+#     if _clip_model is None:
 
-        logger.info("Loading pretrained CLIP model...")
+#         logger.info("Loading pretrained CLIP model...")
 
-        _clip_device = torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu"
-        )
+#         _clip_device = torch.device(
+#             "cuda" if torch.cuda.is_available() else "cpu"
+#         )
 
-        _clip_processor = CLIPProcessor.from_pretrained(
-            CLIP_MODEL_NAME
-        )
+#         _clip_processor = CLIPProcessor.from_pretrained(
+#             CLIP_MODEL_NAME
+#         )
 
-        _clip_model = CLIPModel.from_pretrained(
-            CLIP_MODEL_NAME
-        )
+#         _clip_model = CLIPModel.from_pretrained(
+#             CLIP_MODEL_NAME
+#         )
 
-        _clip_model.to(_clip_device)
-        _clip_model.eval()
+#         _clip_model.to(_clip_device)
+#         _clip_model.eval()
 
-        logger.info(
-            "CLIP model loaded successfully on %s",
-            _clip_device
-        )
+#         logger.info(
+#             "CLIP model loaded successfully on %s",
+#             _clip_device
+#         )
 
-    return _clip_model, _clip_processor, _clip_device
+#     return _clip_model, _clip_processor, _clip_device
 
 
 # ============================================================
@@ -137,27 +138,27 @@ VIDEO_TOPICS = {
 }
 
 
-# ============================================================
-# ENVIRONMENTAL CHALLENGE DESCRIPTIONS
-# ============================================================
+# # ============================================================
+# # ENVIRONMENTAL CHALLENGE DESCRIPTIONS
+# # ============================================================
 
-CHALLENGE_DESCRIPTIONS = {
-    1: "Cleaning a personal study area or desk, making it neat and tidy.",
+# CHALLENGE_DESCRIPTIONS = {
+#     1: "Cleaning a personal study area or desk, making it neat and tidy.",
 
-    2: "Segregating waste into separate bins for wet waste, dry waste, and e-waste.",
+#     2: "Segregating waste into separate bins for wet waste, dry waste, and e-waste.",
 
-    3: "Saving energy by switching off lights, fans, or electronics when not in use.",
+#     3: "Saving energy by switching off lights, fans, or electronics when not in use.",
 
-    4: "Watering or caring for a plant at home or school.",
+#     4: "Watering or caring for a plant at home or school.",
 
-    5: "Participating in a cleanup drive and collecting trash from a public area.",
+#     5: "Participating in a cleanup drive and collecting trash from a public area.",
 
-    6: "Organizing a school bag neatly with books and stationery.",
+#     6: "Organizing a school bag neatly with books and stationery.",
 
-    7: "Saving water by turning off taps, using a bucket instead of a hose, or reusing water.",
+#     7: "Saving water by turning off taps, using a bucket instead of a hose, or reusing water.",
 
-    8: "Using a cloth bag instead of a plastic bag while shopping or carrying items."
-}
+#     8: "Using a cloth bag instead of a plastic bag while shopping or carrying items."
+# }
 
 
 # ============================================================
@@ -313,165 +314,165 @@ def generate_quiz(
     return validated
 
 
-# ============================================================
-# 2. CLIP IMAGE VERIFICATION
-# ============================================================
+# # ============================================================
+# # 2. CLIP IMAGE VERIFICATION
+# # ============================================================
 
-def verify_image(image_bytes: bytes, challenge_id: int) -> dict:
-    """
-    Verify whether an uploaded photograph visually matches
-    an environmental challenge using CLIP.
+# def verify_image(image_bytes: bytes, challenge_id: int) -> dict:
+#     """
+#     Verify whether an uploaded photograph visually matches
+#     an environmental challenge using CLIP.
 
-    Returns:
-        {
-            "status": "relevant" | "not_relevant" |
-                      "uncertain" | "ai_unavailable",
-            "confidence": float,
-            "similarity_score": float,
-            "explanation": str
-        }
+#     Returns:
+#         {
+#             "status": "relevant" | "not_relevant" |
+#                       "uncertain" | "ai_unavailable",
+#             "confidence": float,
+#             "similarity_score": float,
+#             "explanation": str
+#         }
 
-    Note:
-        CLIP similarity is not a calibrated probability
-        and does not prove that an activity was performed.
-    """
+#     Note:
+#         CLIP similarity is not a calibrated probability
+#         and does not prove that an activity was performed.
+#     """
 
-    description = CHALLENGE_DESCRIPTIONS.get(challenge_id)
+#     description = CHALLENGE_DESCRIPTIONS.get(challenge_id)
 
-    if not description:
-        return {
-            "status": "uncertain",
-            "confidence": 0.0,
-            "similarity_score": 0.0,
-            "explanation": "Unknown challenge ID."
-        }
+#     if not description:
+#         return {
+#             "status": "uncertain",
+#             "confidence": 0.0,
+#             "similarity_score": 0.0,
+#             "explanation": "Unknown challenge ID."
+#         }
 
-    try:
+#     try:
 
-        # Load model only once
-        model, processor, device = _get_clip_model()
+#         # Load model only once
+#         model, processor, device = _get_clip_model()
 
-        # Read uploaded image
-        image = Image.open(
-            io.BytesIO(image_bytes)
-        ).convert("RGB")
+#         # Read uploaded image
+#         image = Image.open(
+#             io.BytesIO(image_bytes)
+#         ).convert("RGB")
 
-        # Positive and negative text descriptions
-        positive_prompts = [
-            f"A photograph showing {description}",
-            f"A student performing this environmental activity: {description}",
-            f"An image demonstrating {description}"
-        ]
+#         # Positive and negative text descriptions
+#         positive_prompts = [
+#             f"A photograph showing {description}",
+#             f"A student performing this environmental activity: {description}",
+#             f"An image demonstrating {description}"
+#         ]
 
-        negative_prompts = [
-            "A photograph showing an unrelated everyday activity.",
-            "A photograph showing something unrelated to the assigned challenge.",
-            "A photograph of an unrelated object, place, or scene."
-        ]
+#         negative_prompts = [
+#             "A photograph showing an unrelated everyday activity.",
+#             "A photograph showing something unrelated to the assigned challenge.",
+#             "A photograph of an unrelated object, place, or scene."
+#         ]
 
-        all_prompts = positive_prompts + negative_prompts
+#         all_prompts = positive_prompts + negative_prompts
 
-        # Process image and text
-        inputs = processor(
-            text=all_prompts,
-            images=image,
-            return_tensors="pt",
-            padding=True
-        )
+#         # Process image and text
+#         inputs = processor(
+#             text=all_prompts,
+#             images=image,
+#             return_tensors="pt",
+#             padding=True
+#         )
 
-        inputs = {
-            key: value.to(device)
-            for key, value in inputs.items()
-        }
+#         inputs = {
+#             key: value.to(device)
+#             for key, value in inputs.items()
+#         }
 
-        # Generate normalized embeddings
-        with torch.inference_mode():
+#         # Generate normalized embeddings
+#         with torch.inference_mode():
 
-            image_features = model.get_image_features(
-                pixel_values=inputs["pixel_values"]
-            )
+#             image_features = model.get_image_features(
+#                 pixel_values=inputs["pixel_values"]
+#             )
 
-            text_features = model.get_text_features(
-                input_ids=inputs["input_ids"],
-                attention_mask=inputs.get("attention_mask")
-            )
+#             text_features = model.get_text_features(
+#                 input_ids=inputs["input_ids"],
+#                 attention_mask=inputs.get("attention_mask")
+#             )
 
-            image_features = torch.nn.functional.normalize(
-                image_features, p=2, dim=-1
-            )
+#             image_features = torch.nn.functional.normalize(
+#                 image_features, p=2, dim=-1
+#             )
 
-            text_features = torch.nn.functional.normalize(
-                text_features, p=2, dim=-1
-            )
+#             text_features = torch.nn.functional.normalize(
+#                 text_features, p=2, dim=-1
+#             )
 
-            similarities = (
-                image_features @ text_features.T
-            )[0]
+#             similarities = (
+#                 image_features @ text_features.T
+#             )[0]
 
-        positive_scores = similarities[:len(positive_prompts)]
-        negative_scores = similarities[len(positive_prompts):]
+#         positive_scores = similarities[:len(positive_prompts)]
+#         negative_scores = similarities[len(positive_prompts):]
 
-        positive_score = positive_scores.max().item()
-        negative_score = negative_scores.max().item()
+#         positive_score = positive_scores.max().item()
+#         negative_score = negative_scores.max().item()
 
-        margin = positive_score - negative_score
+#         margin = positive_score - negative_score
 
-        # Starter thresholds only.
-        # Calibrate using a representative validation dataset.
-        if positive_score >= 0.25 and margin >= 0.03:
+#         # Starter thresholds only.
+#         # Calibrate using a representative validation dataset.
+#         if positive_score >= 0.25 and margin >= 0.03:
 
-            status = "relevant"
+#             status = "relevant"
 
-            explanation = (
-                "The uploaded photograph appears visually "
-                "consistent with the assigned challenge."
-            )
+#             explanation = (
+#                 "The uploaded photograph appears visually "
+#                 "consistent with the assigned challenge."
+#             )
 
-        elif negative_score > positive_score and margin <= -0.03:
+#         elif negative_score > positive_score and margin <= -0.03:
 
-            status = "not_relevant"
+#             status = "not_relevant"
 
-            explanation = (
-                "The uploaded photograph does not appear "
-                "to match the assigned environmental challenge."
-            )
+#             explanation = (
+#                 "The uploaded photograph does not appear "
+#                 "to match the assigned environmental challenge."
+#             )
 
-        else:
+#         else:
 
-            status = "uncertain"
+#             status = "uncertain"
 
-            explanation = (
-                "The image could not be confidently matched. "
-                "Teacher verification is recommended."
-            )
+#             explanation = (
+#                 "The image could not be confidently matched. "
+#                 "Teacher verification is recommended."
+#             )
 
-        # Legacy confidence field retained for compatibility.
-        # This is a transformed similarity value, not probability.
-        confidence = max(
-            0.0,
-            min(1.0, (positive_score + 1.0) / 2.0)
-        )
+#         # Legacy confidence field retained for compatibility.
+#         # This is a transformed similarity value, not probability.
+#         confidence = max(
+#             0.0,
+#             min(1.0, (positive_score + 1.0) / 2.0)
+#         )
 
-        return {
-            "status": status,
-            "confidence": round(confidence, 4),
-            "similarity_score": round(positive_score, 4),
-            "explanation": explanation
-        }
+#         return {
+#             "status": status,
+#             "confidence": round(confidence, 4),
+#             "similarity_score": round(positive_score, 4),
+#             "explanation": explanation
+#         }
 
-    except Exception as exc:
+#     except Exception as exc:
 
-        logger.exception(
-            "CLIP image verification failed: %s",
-            exc
-        )
+#         logger.exception(
+#             "CLIP image verification failed: %s",
+#             exc
+#         )
 
-        return {
-            "status": "ai_unavailable",
-            "confidence": 0.0,
-            "similarity_score": 0.0,
-            "explanation": (
-                "Image verification is temporarily unavailable. "
-                "Submission should be forwarded for teacher review."
-            )
-        }
+#         return {
+#             "status": "ai_unavailable",
+#             "confidence": 0.0,
+#             "similarity_score": 0.0,
+#             "explanation": (
+#                 "Image verification is temporarily unavailable. "
+#                 "Submission should be forwarded for teacher review."
+#             )
+#         }
