@@ -23,7 +23,6 @@ from models import (
 import gemini_service1
 import google.generativeai as genai
 =======
-import gemini_service
 >>>>>>> f7db65ff1de08f21bc1944c2a08e356aa2413688
 
 app = Flask(__name__)
