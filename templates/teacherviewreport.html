@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EnviroLearn | Teacher Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --forest: #1a3a2a;
+  --moss: #2d5a3d;
+  --leaf: #4a9b6f;
+  --mint: #7ec8a0;
+  --sage: #b8dfc8;
+  --cream: #f5f0e8;
+  --amber: #e8a430;
+  --ember: #e05c2a;
+  --sky: #3a7bbf;
+  --ink: #0f1e17;
+  --mist: #e8f0ec;
+  --gold: #f0c040;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Courier New', Courier, monospace;
+  background: var(--cream);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 240px;
+  background: var(--forest);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  padding: 0 0 20px 0;
+}
+
+.sidebar-logo {
+  padding: 28px 24px 24px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-logo .logo-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+
+.sidebar-logo h2 {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--mint);
+  letter-spacing: -0.5px;
+}
+
+.sidebar-logo p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.nav-section {
+  padding: 20px 12px 8px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.3);
+  font-weight: 500;
+}
+
+.nav-item {
+  margin: 2px 12px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,0.6);
+  font-size: 14px;
+  font-weight: 400;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.nav-item:hover { background: rgba(255,255,255,0.06); color: white; }
+.nav-item.active { background: var(--leaf); color: white; font-weight: 500; }
+.nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+.nav-badge {
+  margin-left: auto;
+  background: var(--ember);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 20px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  font-size: 12px;
+  color: rgba(255,255,255,0.3);
+}
+
+.main { margin-left: 240px; min-height: 100vh; }
+
+.topbar {
+  background: white;
+  padding: 18px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--sage);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.topbar-title {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--forest);
+}
+
+.topbar-right { display: flex; align-items: center; gap: 16px; }
+
+.search-box {
+  padding: 9px 16px 9px 36px;
+  border: 1.5px solid var(--sage);
+  border-radius: 30px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  background: var(--mist) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%234a9b6f' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E") no-repeat 12px center;
+  outline: none;
+  width: 220px;
+  color: var(--ink);
+  transition: border-color 0.2s;
+}
+
+.search-box:focus { border-color: var(--leaf); }
+
+.teacher-avatar {
+  width: 38px; height: 38px;
+  background: linear-gradient(135deg, var(--leaf), var(--sky));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+
+.content { padding: 32px 36px; }
+
+.view { display: none; }
+.view.active { display: block; animation: fadeUp 0.3s ease; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 22px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(26,58,42,0.06);
+  border: 1px solid rgba(184,223,200,0.4);
+  transition: transform 0.2s;
+}
+
+.stat-card:hover { transform: translateY(-2px); }
+
+.stat-icon {
+  width: 46px; height: 46px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-icon.green { background: #e8f5ee; }
+.stat-icon.blue { background: #e3eef9; }
+.stat-icon.amber { background: #fdf3e3; }
+.stat-icon.red { background: #fdeae3; }
+
+.stat-info .stat-val {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--forest);
+  line-height: 1;
+}
+
+.stat-info .stat-label { font-size: 12px; color: #7a8f84; margin-top: 4px; }
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.filter-tab {
+  padding: 7px 16px;
+  border-radius: 30px;
+  border: 1.5px solid var(--sage);
+  background: white;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  cursor: pointer;
+  color: #5a7a6a;
+  transition: all 0.2s;
+}
+
+.filter-tab:hover { border-color: var(--leaf); color: var(--leaf); }
+.filter-tab.active { background: var(--leaf); border-color: var(--leaf); color: white; font-weight: 500; }
+
+.card-box {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(26,58,42,0.06);
+  border: 1px solid rgba(184,223,200,0.4);
+  overflow: hidden;
+}
+
+.card-box-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--mist);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-box-header h3 {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--forest);
+}
+
+table { width: 100%; border-collapse: collapse; }
+
+thead th {
+  background: var(--mist);
+  padding: 12px 20px;
+  text-align: left;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: #7a8f84;
+  font-weight: 600;
+}
+
+tbody tr {
+  border-bottom: 1px solid var(--mist);
+  transition: background 0.15s;
+  cursor: pointer;
+}
+
+tbody tr:hover { background: #f8faf9; }
+tbody tr:last-child { border-bottom: none; }
+
+td { padding: 14px 20px; font-size: 14px; color: var(--ink); vertical-align: middle; }
+
+.student-name-cell { display: flex; align-items: center; gap: 12px; }
+
+.student-mini-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.xp-pill {
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.xp-total { background: #e8f5ee; color: var(--moss); }
+.xp-game { background: #fdf3e3; color: #b07020; }
+.xp-quiz { background: #e3eef9; color: #2a5f9e; }
+.xp-video { background: #f3e3fd; color: #6a2a9e; }
+.xp-challenge { background: #fdeae3; color: #9e3a2a; }
+
+.status-dot { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+.dot.green { background: #4caf50; }
+.dot.yellow { background: #f0b429; }
+.dot.red { background: #e05c2a; }
+
+.rank-badge { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; }
+.rank-1 { color: #e8a430; }
+.rank-2 { color: #9aa8b8; }
+.rank-3 { color: #b87040; }
+.rank-other { color: #8fa09a; font-weight: 500; font-size: 13px; }
+
+.btn-view {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--mist);
+  color: var(--forest);
+  border: 1px solid var(--sage);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.btn-view:hover { background: var(--leaf); color: white; border-color: var(--leaf); }
+
+.podium-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 16px;
+  padding: 32px 24px 28px;
+}
+
+.podium-spot { text-align: center; display: flex; flex-direction: column; align-items: center; }
+
+.podium-avatar {
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800;
+  margin-bottom: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  border: 3px solid transparent;
+}
+
+.podium-1 .podium-avatar { background: linear-gradient(135deg,#f0c040,#e8932a); color: white; border-color: #e8a430; width: 76px; height: 76px; font-size: 30px; }
+.podium-2 .podium-avatar { background: linear-gradient(135deg,#c0cad8,#8fa0b8); color: white; border-color: #9aa8b8; width: 64px; height: 64px; font-size: 26px; }
+.podium-3 .podium-avatar { background: linear-gradient(135deg,#d8a878,#b87040); color: white; border-color: #b87040; width: 64px; height: 64px; font-size: 26px; }
+
+.podium-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; color: var(--forest); }
+.podium-class { font-size: 11px; color: #8fa09a; margin: 2px 0; }
+.podium-xp { font-size: 13px; font-weight: 600; color: var(--leaf); }
+
+.podium-stand {
+  border-radius: 8px 8px 0 0;
+  display: flex; align-items: center; justify-content: center;
+  padding-top: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 22px;
+  font-weight: 800;
+  color: white;
+  width: 88px;
+}
+
+.stand-1 { background: linear-gradient(180deg,#e8a430,#c07820); height: 80px; }
+.stand-2 { background: linear-gradient(180deg,#9aa8b8,#6a7888); height: 56px; }
+.stand-3 { background: linear-gradient(180deg,#b87040,#885020); height: 44px; }
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: white;
+  border: 1.5px solid var(--sage);
+  border-radius: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  color: var(--forest);
+  cursor: pointer;
+  margin-bottom: 24px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.back-btn:hover { background: var(--mist); }
+
+.detail-header {
+  background: linear-gradient(135deg, var(--forest), var(--moss));
+  color: white;
+  border-radius: 16px;
+  padding: 28px 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.detail-avatar {
+  width: 72px; height: 72px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 32px;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 800;
+  border: 2px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+.detail-meta h2 { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; }
+
+.detail-meta-row { display: flex; gap: 10px; margin-top: 8px; flex-wrap: wrap; }
+
+.meta-chip {
+  background: rgba(255,255,255,0.12);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.detail-xp-row {
+  display: flex;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.xp-mini {
+  text-align: center;
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 12px 10px;
+  min-width: 68px;
+}
+
+.xp-mini .xm-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; display: block; }
+.xp-mini .xm-label { font-size: 10px; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; display: block; }
+
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+.detail-card {
+  background: white;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26,58,42,0.06);
+  border: 1px solid rgba(184,223,200,0.4);
+}
+
+.detail-card-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--mist);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--forest);
+}
+
+.detail-card-body { padding: 16px 20px; }
+
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--mist);
+  font-size: 14px;
+  gap: 10px;
+}
+
+.avatar-wrapper {
+  position: relative;
+  cursor: pointer;
+}
+
+.avatar-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  background: white;
+  border: 1px solid var(--sage);
+  border-radius: 10px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  width: 140px;
+  display: none;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+.avatar-dropdown button {
+  width: 100%;
+  padding: 10px 14px;
+  background: white;
+  border: none;
+  text-align: left;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--forest);
+  transition: background 0.2s;
+}
+
+.avatar-dropdown button:hover { background: var(--mist); }
+
+.score-row:last-child { border-bottom: none; }
+.score-label { color: #5a7a6a; flex-shrink: 0; }
+.score-val { font-family: 'Courier New', Courier, monospace; font-weight: 700; color: var(--forest); flex-shrink: 0; }
+
+.progress-bar-outer {
+  height: 8px; background: var(--mist); border-radius: 4px; overflow: hidden; flex: 1;
+}
+
+.progress-bar-inner { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--leaf), var(--mint)); }
+
+.challenge-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 8px; font-size: 12px; font-weight: 500; margin: 3px;
+}
+
+.ch-done { background: #e8f5ee; color: var(--moss); }
+.ch-pending { background: var(--mist); color: #8fa09a; }
+
+.badge-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; padding: 4px 0; }
+
+.badge-item {
+  text-align: center; padding: 12px 6px; border-radius: 12px; border: 1.5px solid var(--mist);
+}
+
+.badge-item.earned { background: #e8f5ee; border-color: var(--sage); }
+.badge-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+.badge-name { font-size: 10px; color: #7a8f84; font-weight: 500; }
+
+.page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+
+.page-header h2 { font-family: 'Courier New', Courier, monospace; font-size: 22px; font-weight: 800; color: var(--forest); }
+.page-header p { font-size: 13px; color: #8fa09a; margin-top: 3px; }
+
+/* ── PHOTO REVIEW PANEL ── */
+.sub-filter-row {
+  display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;
+}
+
+.sub-filter-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--sage);
+  background: white;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  cursor: pointer;
+  color: #5a7a6a;
+  transition: all 0.2s;
+}
+.sub-filter-tab:hover { border-color: var(--leaf); color: var(--leaf); }
+.sub-filter-tab.active { background: var(--leaf); border-color: var(--leaf); color: white; font-weight: 600; }
+
+.submissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+.sub-card {
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 14px rgba(26,58,42,0.08);
+  border: 1.5px solid rgba(184,223,200,0.4);
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s;
+}
+
+.sub-card:hover { transform: translateY(-3px); }
+
+.sub-card-head {
+  padding: 14px 18px;
+  background: var(--forest);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.sub-card-head .student-info h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.sub-card-head .student-info span {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.sub-status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-submitted { background: rgba(240,192,64,0.25); color: #f0c040; }
+.status-verified  { background: rgba(74,155,111,0.25); color: #7ec8a0; }
+.status-rejected  { background: rgba(224,92,42,0.25);  color: #e05c2a; }
+
+.sub-challenge-label {
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--mist);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--moss);
+  background: var(--mist);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sub-challenge-label span { font-size: 11px; color: #8fa09a; font-weight: 400; }
+
+.sub-photos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.sub-photo-box {
+  position: relative;
+  overflow: hidden;
+  background: var(--mist);
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sub-photo-box img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  display: block;
+  cursor: zoom-in;
+  transition: transform 0.3s;
+}
+
+.sub-photo-box img:hover { transform: scale(1.04); }
+
+.sub-photo-placeholder {
+  color: #8fa09a;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px;
+}
+
+.sub-photo-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0,0,0,0.65));
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 18px 10px 7px;
+  text-align: center;
+  letter-spacing: 0.5px;
+}
+
+.sub-meta {
+  padding: 12px 18px;
+  font-size: 12px;
+  color: #7a8f84;
+  border-bottom: 1px solid var(--mist);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.sub-actions {
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-actions textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1.5px solid var(--sage);
+  border-radius: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  resize: vertical;
+  min-height: 56px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.sub-actions textarea:focus { border-color: var(--leaf); }
+
+.reward-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--forest);
+}
+
+.reward-row label { font-weight: 600; flex-shrink: 0; }
+
+.reward-row input[type="number"] {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1.5px solid var(--sage);
+  border-radius: 8px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--forest);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.reward-row input[type="number"]:focus { border-color: var(--leaf); }
+
+.action-btns { display: flex; gap: 8px; }
+
+.btn-verify {
+  flex: 1;
+  padding: 9px 0;
+  background: linear-gradient(135deg, var(--leaf), var(--moss));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.btn-verify:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-reject {
+  flex: 1;
+  padding: 9px 0;
+  background: linear-gradient(135deg, #e05c2a, #a03010);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+}
+
+.btn-reject:hover { opacity: 0.9; transform: translateY(-1px); }
+
+.btn-verify:disabled,
+.btn-reject:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.done-label {
+  text-align: center;
+  padding: 9px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.done-verified { background: #e8f5ee; color: var(--moss); }
+.done-rejected { background: #fdeae3; color: #9e3a2a; }
+
+.feedback-shown {
+  font-size: 12px;
+  color: #5a7a6a;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.no-submissions {
+  text-align: center;
+  padding: 60px 20px;
+  color: #8fa09a;
+  font-size: 15px;
+}
+
+/* Lightbox */
+.lightbox-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+}
+
+.lightbox-overlay.open { display: flex; }
+
+.lightbox-overlay img {
+  max-width: 90vw;
+  max-height: 88vh;
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+}
+
+.lightbox-close {
+  position: absolute;
+  top: 20px;
+  right: 24px;
+  font-size: 32px;
+  color: white;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+}
+
+.lightbox-close:hover { opacity: 1; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-thumb { background: var(--sage); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox" onclick="closeLightbox(event)">
+  <span class="lightbox-close" onclick="document.getElementById('lightbox').classList.remove('open')">✕</span>
+  <img id="lightbox-img" src="" alt="Photo">
+</div>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <span class="logo-icon">🌿</span>
+    <h2>EnviroLearn</h2>
+    <p>Teacher Dashboard</p>
+  </div>
+  <div class="nav-section">Navigation</div>
+  <div class="nav-item active" onclick="showView('overview')" id="nav-overview">
+    <span class="nav-icon">📊</span> Overview
+  </div>
+  <div class="nav-item" onclick="showView('students')" id="nav-students">
+    <span class="nav-icon">👥</span> Student List
+  </div>
+  <div class="nav-item" onclick="showView('leaderboard')" id="nav-leaderboard">
+    <span class="nav-icon">🏆</span> Leaderboard
+  </div>
+  <div class="nav-item" onclick="showView('submissions')" id="nav-submissions">
+    <span class="nav-icon">📸</span> Photo Reviews
+    <span class="nav-badge" id="pending-badge">0</span>
+  </div>
+  <div class="sidebar-footer">Logged in as Teacher</div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Class Overview</div>
+    <div class="topbar-right">
+      <input type="text" class="search-box" id="searchInput" placeholder="Search students…" oninput="filterStudents()" style="visibility:hidden">
+      <div class="avatar-wrapper" onclick="toggleDropdown(event)">
+        <div class="teacher-avatar">👩‍🏫</div>
+        <div class="avatar-dropdown" id="avatarDropdown">
+          <button onclick="logout()">🚪 Logout</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- OVERVIEW -->
+    <div class="view active" id="view-overview">
+      <div class="page-header">
+        <div><h2>Class Overview</h2><p>All performance metrics at a glance</p></div>
+      </div>
+      <div class="stats-row" id="overview-stats"></div>
+      <div class="card-box">
+        <div class="card-box-header">
+          <h3>🌱 Top Performers</h3>
+          <button class="btn-view" onclick="showView('leaderboard')">View Full Leaderboard →</button>
+        </div>
+        <table>
+          <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>🎮 Games</th><th>📝 Quizzes</th><th>🎥 Videos</th><th>🌍 Challenges</th><th>⭐ Total XP</th><th>Status</th></tr></thead>
+          <tbody id="overview-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="view" id="view-students">
+      <div class="page-header">
+        <div><h2>Student List</h2><p id="student-count-label">Loading…</p></div>
+      </div>
+      <div class="filter-row" id="class-filters"></div>
+      <div class="card-box">
+        <div class="card-box-header"><h3>👥 All Students</h3></div>
+        <table>
+          <thead><tr><th>Rank</th><th>Name</th><th>Class</th><th>Total XP</th><th>Games</th><th>Quizzes</th><th>Videos</th><th>Challenges</th><th>Status</th><th>Last Login</th></tr></thead>
+          <tbody id="students-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div class="view" id="view-leaderboard">
+      <div class="page-header">
+        <div><h2>Leaderboard</h2><p>Class rankings by total XP</p></div>
+      </div>
+      <div class="card-box" style="margin-bottom:20px">
+        <div id="podium-section"></div>
+      </div>
+      <div class="card-box">
+        <div class="card-box-header"><h3>📋 Full Rankings</h3></div>
+        <table>
+          <thead><tr><th>Rank</th><th>Student</th><th>Class</th><th>🎮 Games</th><th>📝 Quizzes</th><th>🎥 Videos</th><th>🌍 Challenges</th><th>⭐ Total XP</th><th>Badges</th></tr></thead>
+          <tbody id="leaderboard-table"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PHOTO REVIEW -->
+    <div class="view" id="view-submissions">
+      <div class="page-header">
+        <div><h2>📸 Challenge Photo Reviews</h2><p>Verify student submissions and award XP rewards</p></div>
+      </div>
+      <div class="sub-filter-row" id="sub-filter-row">
+        <button class="sub-filter-tab active" onclick="setSubFilter('all',this)">All</button>
+        <button class="sub-filter-tab" onclick="setSubFilter('submitted',this)">⏳ Pending</button>
+        <button class="sub-filter-tab" onclick="setSubFilter('verified',this)">✅ Verified</button>
+        <button class="sub-filter-tab" onclick="setSubFilter('rejected',this)">❌ Rejected</button>
+      </div>
+      <div class="submissions-grid" id="submissions-grid"></div>
+    </div>
+
+    <!-- DETAIL -->
+    <div class="view" id="view-detail">
+      <button class="back-btn" onclick="goBack()">← Back</button>
+      <div id="detail-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const STUDENTS = {{ students|tojson }};
+const SUBMISSIONS = {{ submissions|tojson }};
+
+const BADGE_META = {
+  seedling:{icon:"🌱",name:"Seedling"}, recycling:{icon:"♻️",name:"Recycler"},
+  energy:{icon:"💡",name:"Energy Saver"}, nature:{icon:"🌿",name:"Nature Lover"},
+  eco:{icon:"🌍",name:"Eco Warrior"}, discipline:{icon:"🎒",name:"Organized"},
+  water:{icon:"💧",name:"Water Guardian"}, earth:{icon:"🗺️",name:"Earth Hero"},
+  ultimate:{icon:"🏆",name:"Ultimate Eco"},
+};
+const ALL_BADGES = ["seedling","recycling","energy","nature","eco","discipline","water","earth","ultimate"];
+
+function tx(s){ return s.game_xp + s.quiz_xp + s.video_xp + s.challenge_xp; }
+const sorted = [...STUDENTS].sort((a,b) => tx(b)-tx(a));
+
+let submissionState = SUBMISSIONS.map(s => ({...s}));
+
+function photoUrl(rawPath) {
+  if (!rawPath) return '';
+
+  // Convert Windows paths to web paths
+  let p = rawPath.replace(/\\/g, '/');
+
+  // If backend already sends /static/... keep it
+  if (p.startsWith('/')) return p;
+
+  // If it starts with static/... add leading slash
+  if (p.startsWith('static/')) return '/' + p;
+
+  // If only filename stored, assume uploads folder
+  return '/static/uploads/' + p;
+}
+
+function updatePendingBadge() {
+  const n = submissionState.filter(s => s.status === 'submitted').length;
+  const badge = document.getElementById('pending-badge');
+  badge.textContent = n;
+  badge.style.display = n > 0 ? 'inline-block' : 'none';
+}
+
+function getStatus(ll){
+  if(!ll) return {label:"Never Logged In",dot:"red"};
+  const d = new Date(ll), now = new Date();
+  const days = Math.floor((now-d)/(864e5));
+  if(days===0) return {label:"Active Today",dot:"green"};
+  if(days<=7) return {label:"Active This Week",dot:"yellow"};
+  return {label:"Inactive",dot:"red"};
+}
+
+function avatarBg(name){
+  const c=["linear-gradient(135deg,#4a9b6f,#2d5a3d)","linear-gradient(135deg,#3a7bbf,#1a4a8a)","linear-gradient(135deg,#e8a430,#c07820)","linear-gradient(135deg,#9b4a8a,#5a2a5a)","linear-gradient(135deg,#e05c2a,#8a2a10)","linear-gradient(135deg,#2a8a8a,#1a5a5a)"];
+  return c[name.charCodeAt(0)%c.length];
+}
+
+function fmtDuration(sec) {
+  if (!sec) return '—';
+  const m = Math.floor(sec/60), s = sec%60;
+  return m+'m '+s+'s';
+}
+
+function toggleDropdown(e){
+  e.stopPropagation();
+  const d = document.getElementById('avatarDropdown');
+  d.style.display = d.style.display==='block' ? 'none':'block';
+}
+document.addEventListener('click', ()=>{
+  const d = document.getElementById('avatarDropdown');
+  if(d) d.style.display='none';
+});
+
+function logout(){ window.location.href='/logout'; }
+
+let prevView = 'students';
+
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const nav = document.getElementById('nav-'+name);
+  if(nav) nav.classList.add('active');
+  const titles = {
+    overview:'Class Overview', students:'Student List',
+    leaderboard:'Leaderboard', submissions:'📸 Challenge Photo Reviews',
+    detail:'Student Detail'
+  };
+  document.getElementById('topbar-title').textContent = titles[name]||'';
+  document.getElementById('searchInput').style.visibility = name==='students'?'visible':'hidden';
+  if(name==='submissions') renderSubmissions();
+}
+
+function goBack(){ showView(prevView); }
+
+function renderOverview(){
+  const n = STUDENTS.length;
+  const pending = submissionState.filter(s=>s.status==='submitted').length;
+  const avg = Math.round(STUDENTS.reduce((a,s)=>a+tx(s),0)/n);
+  const chall = STUDENTS.reduce((a,s)=>a+(s.challenges_done||0),0);
+  document.getElementById('overview-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-icon green">👥</div><div class="stat-info"><div class="stat-val">${n}</div><div class="stat-label">Total Students</div></div></div>
+    <div class="stat-card" style="cursor:pointer" onclick="showView('submissions')"><div class="stat-icon amber">⏳</div><div class="stat-info"><div class="stat-val">${pending}</div><div class="stat-label">Pending Reviews</div></div></div>
+    <div class="stat-card"><div class="stat-icon amber">⭐</div><div class="stat-info"><div class="stat-val">${avg}</div><div class="stat-label">Avg XP</div></div></div>
+    <div class="stat-card"><div class="stat-icon red">🌍</div><div class="stat-info"><div class="stat-val">${chall}</div><div class="stat-label">Challenges Done</div></div></div>`;
+  document.getElementById('overview-table').innerHTML = sorted.slice(0,7).map((s,i)=>{
+    const st=getStatus(s.last_login);
+    return `<tr onclick="viewStudent(${s.id})">
+      <td><span class="rank-badge ${['rank-1','rank-2','rank-3'][i]||'rank-other'}">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span></td>
+      <td><div class="student-name-cell"><div class="student-mini-avatar" style="background:${avatarBg(s.name)};color:white">${s.name[0]}</div><span>${s.name}</span></div></td>
+      <td style="font-size:12px;color:#7a8f84">${s.student_class}</td>
+      <td><span class="xp-pill xp-game">${s.game_xp}</span></td>
+      <td><span class="xp-pill xp-quiz">${s.quiz_xp}</span></td>
+      <td><span class="xp-pill xp-video">${s.video_xp}</span></td>
+      <td><span class="xp-pill xp-challenge">${s.challenge_xp}</span></td>
+      <td><strong style="font-family:'Syne',sans-serif;font-size:15px">${tx(s)}</strong></td>
+      <td><span class="status-dot"><span class="dot ${st.dot}"></span>${st.label}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderClassFilters(){
+  const classes = ['All',...new Set(STUDENTS.map(s=>s.student_class).sort())];
+  document.getElementById('class-filters').innerHTML = classes.map(c=>`<button class="filter-tab ${c===activeClass?'active':''}" onclick="setClass('${c}')">${c}</button>`).join('');
+}
+let activeClass = 'All';
+function setClass(c){ activeClass=c; renderClassFilters(); renderStudents(); }
+function filterStudents(){ renderStudents(); }
+
+function renderStudents(){
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let list = sorted.map((s,i)=>({...s,rank:i+1}));
+  if(activeClass!=='All') list=list.filter(s=>s.student_class===activeClass);
+  if(q) list=list.filter(s=>s.name.toLowerCase().includes(q)||s.student_class.toLowerCase().includes(q));
+  document.getElementById('student-count-label').textContent = `${list.length} student${list.length!==1?'s':''} found`;
+  document.getElementById('students-table').innerHTML = list.map(s=>{
+    const st=getStatus(s.last_login);
+    return `<tr onclick="viewStudent(${s.id})">
+      <td><span class="rank-badge ${s.rank<=3?'rank-'+s.rank:'rank-other'}">${s.rank<=3?['🥇','🥈','🥉'][s.rank-1]:'#'+s.rank}</span></td>
+      <td><div class="student-name-cell"><div class="student-mini-avatar" style="background:${avatarBg(s.name)};color:white">${s.name[0]}</div><strong>${s.name}</strong></div></td>
+      <td>${s.student_class}</td>
+      <td><span class="xp-pill xp-total">${tx(s)} XP</span></td>
+      <td><span class="xp-pill xp-game">${s.game_xp}</span></td>
+      <td><span class="xp-pill xp-quiz">${s.quiz_xp}</span></td>
+      <td><span class="xp-pill xp-video">${s.video_xp}</span></td>
+      <td><span class="xp-pill xp-challenge">${s.challenge_xp}</span></td>
+      <td><span class="status-dot"><span class="dot ${st.dot}"></span>${st.label}</span></td>
+      <td style="font-size:12px;color:#8fa09a">${s.last_login||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLeaderboard(){
+  sorted.sort((a,b)=>tx(b)-tx(a));
+  const top3=sorted.slice(0,3);
+  let podiumHTML='<div class="podium-row">';
+  if(top3.length>=1){
+    if(top3[1]) podiumHTML+=`<div class="podium-spot podium-2"><div class="podium-avatar">${top3[1].name[0]}</div><div class="podium-name">${top3[1].name}</div><div class="podium-class">${top3[1].student_class}</div><div class="podium-xp">⭐ ${tx(top3[1])} XP</div><div class="podium-stand stand-2">🥈</div></div>`;
+    podiumHTML+=`<div class="podium-spot podium-1"><div class="podium-avatar">${top3[0].name[0]}</div><div class="podium-name">${top3[0].name}</div><div class="podium-class">${top3[0].student_class}</div><div class="podium-xp">⭐ ${tx(top3[0])} XP</div><div class="podium-stand stand-1">🥇</div></div>`;
+    if(top3[2]) podiumHTML+=`<div class="podium-spot podium-3"><div class="podium-avatar">${top3[2].name[0]}</div><div class="podium-name">${top3[2].name}</div><div class="podium-class">${top3[2].student_class}</div><div class="podium-xp">⭐ ${tx(top3[2])} XP</div><div class="podium-stand stand-3">🥉</div></div>`;
+  }
+  podiumHTML+='</div>';
+  document.getElementById('podium-section').innerHTML=podiumHTML;
+  document.getElementById('leaderboard-table').innerHTML=sorted.map((s,i)=>`
+    <tr onclick="viewStudent(${s.id})">
+      <td><span class="rank-badge ${i<3?'rank-'+(i+1):'rank-other'}">${i<3?['🥇','🥈','🥉'][i]:'#'+(i+1)}</span></td>
+      <td><div class="student-name-cell"><div class="student-mini-avatar" style="background:${avatarBg(s.name)};color:white">${s.name[0]}</div><strong>${s.name}</strong></div></td>
+      <td>${s.student_class}</td>
+      <td><span class="xp-pill xp-game">${s.game_xp}</span></td>
+      <td><span class="xp-pill xp-quiz">${s.quiz_xp}</span></td>
+      <td><span class="xp-pill xp-video">${s.video_xp}</span></td>
+      <td><span class="xp-pill xp-challenge">${s.challenge_xp}</span></td>
+      <td><strong style="font-family:'Syne',sans-serif;font-size:16px;color:var(--forest)">${tx(s)}</strong></td>
+      <td>${'⭐'.repeat(Math.min(s.badges_count,5))}${s.badges_count>5?' +'+(s.badges_count-5):''}</td>
+    </tr>`).join('');
+}
+
+// ── PHOTO REVIEW ─────────────────────────────────────────────────
+let activeSubFilter = 'all';
+
+function setSubFilter(f, btn) {
+  activeSubFilter = f;
+  document.querySelectorAll('.sub-filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderSubmissions();
+}
+
+function renderSubmissions() {
+  let list = submissionState;
+  if (activeSubFilter !== 'all') list = list.filter(s => s.status === activeSubFilter);
+
+  const grid = document.getElementById('submissions-grid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="no-submissions">📭 No submissions in this category yet.</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(sub => {
+    const isDone = sub.status === 'verified' || sub.status === 'rejected';
+    const statusClass = 'status-' + sub.status;
+    const statusLabel = sub.status === 'submitted' ? '⏳ Pending'
+                      : sub.status === 'verified'  ? '✅ Verified'
+                      : '❌ Rejected';
+
+    // ── FIXED: use photoUrl() to build correct browser URL ──
+    const beforeUrl = photoUrl(sub.before_photo);
+    const afterUrl  = photoUrl(sub.after_photo);
+
+    function photoBox(url, label) {
+      if (url) {
+        return `
+          <div class="sub-photo-box">
+            <img src="${url}"
+                 alt="${label}"
+                 loading="lazy"
+                 onclick="openLightbox('${url}')"
+                 title="Click to zoom"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="sub-photo-placeholder" style="display:none">⚠️ Image not found</div>
+            <div class="sub-photo-label">📷 ${label}</div>
+          </div>`;
+      }
+      return `
+        <div class="sub-photo-box">
+          <div class="sub-photo-placeholder">No photo</div>
+          <div class="sub-photo-label">📷 ${label}</div>
+        </div>`;
+    }
+
+    let actionsHTML;
+    if (isDone) {
+      const doneClass = sub.status === 'verified' ? 'done-verified' : 'done-rejected';
+      const doneLabel = sub.status === 'verified' ? `✅ Verified — ${sub.points} XP awarded` : '❌ Rejected';
+      actionsHTML = `
+        <div class="done-label ${doneClass}">${doneLabel}</div>
+        ${sub.teacher_feedback ? `<p class="feedback-shown">💬 "${sub.teacher_feedback}"</p>` : ''}`;
+    } else {
+      actionsHTML = `
+        <div class="reward-row">
+          <label>🎁 XP Reward:</label>
+          <input type="number" id="pts-${sub.id}" value="${sub.points}" min="0" max="500">
+          <span style="font-size:11px;color:#8fa09a">/ ${sub.points} default</span>
+        </div>
+        <div class="action-btns">
+          <button class="btn-verify" onclick="reviewSub(${sub.id},'verify')">✅ Verify & Award</button>
+          <button class="btn-reject" onclick="reviewSub(${sub.id},'reject')">❌ Reject</button>
+        </div>`;
+    }
+
+    return `
+    <div class="sub-card" id="sub-card-${sub.id}">
+      <div class="sub-card-head">
+        <div class="student-info">
+          <h4>${sub.student_name}</h4>
+          <span>Class ${sub.student_class}</span>
+        </div>
+        <span class="sub-status-badge ${statusClass}">${statusLabel}</span>
+      </div>
+      <div class="sub-challenge-label">
+        🌍 ${sub.challenge_name}
+        <span>Submitted: ${sub.submitted_at}</span>
+      </div>
+      <div class="sub-photos">
+        ${photoBox(beforeUrl, 'BEFORE')}
+        ${photoBox(afterUrl,  'AFTER')}
+      </div>
+      <div class="sub-meta">
+        <span>⏱ Duration: ${fmtDuration(sub.duration_sec)}</span>
+        <span>🎯 Challenge #${sub.challenge_id}</span>
+      </div>
+      ${sub.ai_status ? `<div style="margin:8px 14px;padding:9px 13px;background:rgba(130,180,255,0.12);border-left:3px solid #3498db;border-radius:0 8px 8px 0;font-size:12.5px;">
+        🤖 <strong>AI Check:</strong>
+        <span style="color:${sub.ai_status==='relevant'?'#27ae60':sub.ai_status==='not_relevant'?'#e74c3c':'#f39c12'};">
+          ${sub.ai_status==='relevant'?'✅ Relevant':sub.ai_status==='not_relevant'?'❌ Not Relevant':'⚠️ Uncertain'}
+        </span>
+        ${sub.ai_confidence ? `<span style="color:#888;">(${Math.round(sub.ai_confidence*100)}% confidence)</span>` : ''}
+        ${sub.ai_explanation ? `<br><span style="color:#aaa;font-size:11.5px;">${sub.ai_explanation}</span>` : ''}
+      </div>` : ''}
+      <div class="sub-actions">${actionsHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+async function reviewSub(subId, action) {
+
+  const pts = document.getElementById('pts-'+subId)?.value;
+
+  const body = new FormData();
+  body.append('action', action);
+  if (pts) body.append('reward_points', pts);
+
+  try {
+    const resp = await fetch(`/api/teacher/submissions/${subId}/review`, {
+      method: 'POST',
+      body
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json().catch(()=>({}));
+      alert('Error: ' + (err.error || 'Unknown error'));
+      return;
+    }
+
+    const sub = submissionState.find(s => s.id === subId);
+    if (sub) {
+      sub.status = action === 'verify' ? 'verified' : 'rejected';
+      sub.reward_enabled = action === 'verify';
+
+      if (action === 'verify' && pts) sub.points = parseInt(pts);
+    }
+
+    updatePendingBadge();
+    renderOverview();
+    renderSubmissions();
+
+  } catch (err) {
+    alert('Network error: ' + err.message);
+  }
+}
+
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+
+function closeLightbox(e) {
+  if (e.target === document.getElementById('lightbox')) {
+    document.getElementById('lightbox').classList.remove('open');
+  }
+}
+
+function viewStudent(id){
+  prevView = document.querySelector('.view.active').id.replace('view-','');
+  const s = STUDENTS.find(x=>x.id===id);
+  const rank = sorted.findIndex(x=>x.id===id)+1;
+  const st = getStatus(s.last_login);
+  const d = s.details || {};
+  const qnames = ["Biodiversity Q","Pollution Q","Global Warming Q","Quiz 4","Quiz 5","Quiz 6"];
+
+  const quizRows = (d.quiz_scores||[]).map((sc,i)=>`
+    <div class="score-row">
+      <span class="score-label">${qnames[i]}</span>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${sc}%"></div></div>
+      <span class="score-val">${sc}/100</span>
+    </div>`).join('');
+
+  const videoRows = (d.videos||[]).map(v=>`
+    <div class="score-row">
+      <span class="score-label">🎥 ${v.title}</span>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${v.percent}%;background:${v.percent>=80?'linear-gradient(90deg,var(--leaf),var(--mint))':'linear-gradient(90deg,#e8a430,#f0c040)'}"></div></div>
+      <span class="score-val">${v.percent}%${v.pts>0?' ✅':''}</span>
+    </div>`).join('');
+
+  const chTags = (d.challenges||[]).map(c=>`<span class="challenge-tag ${c.done?'ch-done':'ch-pending'}">${c.i} ${c.t} ${c.done?'✓':''}</span>`).join('');
+
+  const badgeItems = ALL_BADGES.map(bk=>{
+    const bm=BADGE_META[bk]; const earned=(d.badges||[]).includes(bk);
+    return `<div class="badge-item ${earned?'earned':''}"><span class="badge-icon">${earned?bm.icon:'⬜'}</span><span class="badge-name">${bm.name}</span></div>`;
+  }).join('');
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-avatar" style="background:${avatarBg(s.name)}">${s.name[0]}</div>
+      <div class="detail-meta" style="flex:1">
+        <h2>${s.name}</h2>
+        <div class="detail-meta-row">
+          <span class="meta-chip">🏫 Class ${s.student_class}</span>
+          <span class="meta-chip">🏅 Rank #${rank}</span>
+          <span class="meta-chip"><span class="dot ${st.dot}" style="display:inline-block;margin-right:4px;vertical-align:middle"></span>${st.label}</span>
+          <span class="meta-chip">🕒 ${s.last_login||'Never'}</span>
+          <span class="meta-chip">🎖️ ${s.badges_count} badges</span>
+        </div>
+      </div>
+      <div class="detail-xp-row">
+        <div class="xp-mini"><span class="xm-val">${s.game_xp}</span><span class="xm-label">🎮 Games</span></div>
+        <div class="xp-mini"><span class="xm-val">${s.quiz_xp}</span><span class="xm-label">📝 Quizzes</span></div>
+        <div class="xp-mini"><span class="xm-val">${s.video_xp}</span><span class="xm-label">🎥 Videos</span></div>
+        <div class="xp-mini"><span class="xm-val">${s.challenge_xp}</span><span class="xm-label">🌍 Tasks</span></div>
+        <div class="xp-mini" style="background:rgba(255,255,255,0.2)"><span class="xm-val">${tx(s)}</span><span class="xm-label">⭐ Total</span></div>
+      </div>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-card">
+        <div class="detail-card-head">🎮 Game Scores (Best)</div>
+        <div class="detail-card-body">
+          <div class="score-row"><span class="score-label">⚗️ Carbon Footprint</span><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${Math.min((d.carbon_best||0)/3,100)}%"></div></div><span class="score-val">${d.carbon_best||0}</span></div>
+          <div class="score-row"><span class="score-label">🧩 Puzzle</span><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${Math.min((d.puzzle_best||0)/3,100)}%"></div></div><span class="score-val">${d.puzzle_best||0}</span></div>
+          <div class="score-row"><span class="score-label">🗑️ Waste Sort</span><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${Math.min(d.waste_best||0,100)}%"></div></div><span class="score-val">${d.waste_best||0}</span></div>
+          <div class="score-row"><span class="score-label">🌊 Ocean Clean</span><div class="progress-bar-outer"><div class="progress-bar-inner" style="width:${Math.min(d.ocean_best||0,100)}%"></div></div><span class="score-val">${d.ocean_best||0}</span></div>
+        </div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-card-head">📝 Quiz Performance</div>
+        <div class="detail-card-body">${quizRows||'<p style="color:#8fa09a;font-size:13px">No quiz data yet.</p>'}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-card-head">🎥 Video Progress</div>
+        <div class="detail-card-body">${videoRows||'<p style="color:#8fa09a;font-size:13px">No video data yet.</p>'}</div>
+      </div>
+      <div class="detail-card">
+        <div class="detail-card-head">🌍 Eco Challenges (${s.challenges_done}/8 done)</div>
+        <div class="detail-card-body" style="padding:12px 16px">${chTags||'<p style="color:#8fa09a;font-size:13px">No challenges attempted.</p>'}</div>
+      </div>
+      <div class="detail-card" style="grid-column:1/-1">
+        <div class="detail-card-head">🏅 Badges Earned (${s.badges_count}/${ALL_BADGES.length})</div>
+        <div class="detail-card-body"><div class="badge-grid">${badgeItems}</div></div>
+      </div>
+    </div>`;
+
+  showView('detail');
+}
+
+renderOverview();
+renderClassFilters();
+renderStudents();
+renderLeaderboard();
+updatePendingBadge();
+</script>
+</body>
+</html>

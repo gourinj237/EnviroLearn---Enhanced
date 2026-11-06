@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ocean & Wildlife Guardians</title>
+
+<style>
+body{
+    margin:0;
+    font-family:'Courier New', Courier, monospace;
+    min-height:100vh;
+    background: linear-gradient(120deg, #43cea2, #185a9d);
+    color:#222;
+}
+
+.container{
+    max-width:800px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+h1{ text-align:center; }
+
+#question{
+    font-size:20px;
+    margin-bottom:20px;
+}
+
+.option{
+    display:block;
+    background:#f1f1f1;
+    margin:10px 0;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.option:hover{ background:#d6f0ff; }
+
+#feedback{
+    margin-top:15px;
+    font-weight:bold;
+    min-height:24px;
+}
+
+button{
+    padding:12px 20px;
+    margin-top:20px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#3498db;
+    color:white;
+    cursor:pointer;
+}
+
+.btnRow{
+    display:flex;
+    justify-content:flex-end;
+}
+
+#scoreBox{
+    text-align:right;
+    font-weight:bold;
+}
+
+#endScreen{
+    text-align:center;
+    display:none;
+}
+
+.correct{
+    background:#2ecc71 !important;
+    color:white;
+}
+
+.wrong{
+    background:#e74c3c !important;
+    color:white;
+}
+
+#saveStatus{
+    margin-top:15px;
+    font-weight:bold;
+    color:green;
+}
+
+/* Top Right Back Button */
+.top-right{
+    position:absolute;
+    top:20px;
+    right:30px;
+}
+
+.back-btn{
+    background:white;
+    color:#2ecc71;
+    padding:10px 18px;
+    font-size:15px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#e8fff1;
+    transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+<div class="top-right">
+    <button class="back-btn" onclick="goBack()">Back</button>
+</div>
+<div class="container" id="quizBox">
+
+<h1>🐠 Ocean & Wildlife Guardians</h1>
+
+<div id="scoreBox">
+Score: <span id="score">0</span>/10
+</div>
+
+<div id="question"></div>
+<div id="options"></div>
+<div id="feedback"></div>
+
+<div class="btnRow"> 
+    <button onclick="nextQuestion()">Next</button>
+</div> 
+
+</div>
+
+<div class="container" id="endScreen">
+    <h1>🌊 Guardian Mission Complete!</h1>
+    <h2 id="finalScore"></h2>
+    <p id="message"></p>
+    <div id="saveStatus"></div>
+    <button onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+
+const quiz = [
+{q:"Throwing plastic into the ocean harms:",o:["Fish and turtles","Rocks","Clouds","Sand"],a:0},
+{q:"Which helps protect marine life?",o:["Dumping trash","Recycling plastic","Oil spills","Overfishing"],a:1},
+{q:"Coral reefs are important because they:",o:["Support sea life","Make noise","Pollute water","Block ships"],a:0},
+{q:"Which animal lives in the ocean?",o:["Tiger","Dolphin","Elephant","Wolf"],a:1},
+{q:"Protecting forests helps wildlife by:",o:["Destroying homes","Providing habitats","Removing food","Creating smoke"],a:1},
+{q:"What should you do if you visit a beach?",o:["Leave trash","Take shells only","Clean up waste","Disturb animals"],a:2},
+{q:"Endangered animals are those that:",o:["Are very common","May disappear forever","Live in cities","Eat plastic"],a:1},
+{q:"Oil spills in oceans cause:",o:["Clean water","Harm to sea life","Fresh air","Plant growth"],a:1},
+{q:"Which action protects animals?",o:["Poaching","Conservation","Habitat destruction","Pollution"],a:1},
+{q:"Being a wildlife guardian means:",o:["Ignoring nature","Protecting ecosystems","Hurting animals","Cutting forests"],a:1}
+];
+
+let index=0;
+let score=0;
+let answered=false;
+
+function loadQuestion(){
+answered=false;
+document.getElementById("feedback").textContent="";
+let q=quiz[index];
+document.getElementById("question").textContent=q.q;
+
+let optionsHTML="";
+q.o.forEach((opt,i)=>{
+optionsHTML+=`<div class="option" onclick="select(${i})">${opt}</div>`;
+});
+document.getElementById("options").innerHTML=optionsHTML;
+}
+
+function select(i){
+if(answered) return;
+answered=true;
+
+let correct=quiz[index].a;
+let optionDivs=document.querySelectorAll(".option");
+
+optionDivs.forEach((div,idx)=>{
+    if(idx===correct) div.classList.add("correct");
+    if(idx===i && i!==correct) div.classList.add("wrong");
+    div.style.pointerEvents="none";
+});
+
+if(i===correct){
+    score++;
+    document.getElementById("feedback").textContent="🐬 Great protecting!";
+}
+else{
+    document.getElementById("feedback").textContent="🌱 Keep learning to guard nature!";
+}
+
+document.getElementById("score").textContent=score;
+}
+
+function nextQuestion(){
+if(!answered) return;
+index++;
+if(index>=quiz.length){ endQuiz(); return; }
+loadQuestion();
+}
+
+function endQuiz(){
+document.getElementById("quizBox").style.display="none";
+document.getElementById("endScreen").style.display="block";
+
+document.getElementById("finalScore").textContent=
+"You scored "+score+" out of "+quiz.length;
+
+let msg="";
+if(score===10)
+msg="🏆 Ocean hero! Wildlife thanks you!";
+else if(score>=7)
+msg="🌊 Awesome work — guardian in training!";
+else if(score>=4)
+msg="🐢 Good effort — keep protecting!";
+else
+msg="💚 Every guardian starts somewhere!";
+
+document.getElementById("message").textContent=msg;
+
+fetch("/save-quiz2-score", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "score=" + score
+})
+.then(response => response.json())
+.then(data => {
+    document.getElementById("saveStatus").textContent =
+    "✅ Score saved successfully!";
+})
+.catch(error => {
+    document.getElementById("saveStatus").textContent =
+    "";
+});
+}
+
+loadQuestion();
+function goBack(){
+    window.location.href = "{{ url_for('quizzes') }}";
+}
+
+</script>
+
+</body>
+</html>

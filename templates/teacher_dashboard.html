@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Teacher Dashboard</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f4f4f4;
+}
+
+.card{
+background:white;
+padding:20px;
+margin:20px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+img{
+width:150px;
+border-radius:8px;
+}
+
+button{
+padding:10px 15px;
+background:green;
+color:white;
+border:none;
+border-radius:5px;
+cursor:pointer;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h2>Challenge Submissions</h2>
+
+{% for s in submissions %}
+
+<div class="card">
+
+<p><b>Student:</b> {{s.user.name}}</p>
+<p><b>Challenge:</b> {{s.challenge_name}}</p>
+
+<p><b>Before Photo</b></p>
+<img src="{{url_for('static', filename=s.before_photo)}}">
+
+<p><b>After Photo</b></p>
+<img src="{{url_for('static', filename=s.after_photo)}}">
+
+<br><br>
+
+{% if s.status == "submitted" %}
+
+<a href="/verify_submission/{{s.id}}">
+<button>Verify & Enable Reward</button>
+</a>
+
+{% else %}
+
+<p style="color:green;">✔ Verified</p>
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</body>
+</html>

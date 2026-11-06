@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Offline | EnviroLearn</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{
+    font-family:'Courier New', Courier, monospace;
+    background:linear-gradient(135deg,#1a472a,#2d6a4f,#52b788);
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:white;
+    text-align:center;
+    padding:20px;
+}
+.card{
+    background:rgba(255,255,255,0.12);
+    backdrop-filter:blur(10px);
+    border-radius:24px;
+    padding:50px 40px;
+    max-width:480px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.icon{font-size:80px;margin-bottom:20px;animation:float 3s ease-in-out infinite;}
+@keyframes float{
+    0%,100%{transform:translateY(0);}
+    50%{transform:translateY(-12px);}
+}
+h1{font-size:30px;margin-bottom:12px;}
+p{font-size:16px;opacity:0.85;line-height:1.6;margin-bottom:24px;}
+.btn{
+    display:inline-block;
+    padding:13px 28px;
+    background:white;
+    color:#1a472a;
+    border:none;
+    border-radius:12px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    font-family:inherit;
+    text-decoration:none;
+    transition:0.3s;
+}
+.btn:hover{transform:scale(1.05);box-shadow:0 6px 20px rgba(0,0,0,0.2);}
+.leaf{font-size:24px;animation:spin 6s linear infinite;}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+</style>
+</head>
+<body>
+<div class="card">
+    <div class="icon">🌿</div>
+    <h1>You're Offline</h1>
+    <p>
+        It looks like you've lost your internet connection.<br>
+        Don't worry — come back online to continue your eco journey!
+    </p>
+    <p style="font-size:13px;opacity:0.7;">
+        Some pages you visited recently may still be available offline.
+    </p>
+    <a class="btn" href="/" onclick="window.location.reload();return false;">
+        🔄 Try Again
+    </a>
+</div>
+</body>
+</html>

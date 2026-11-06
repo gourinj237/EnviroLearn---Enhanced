@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EnviroLearn</title>
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#2ecc71">
+    <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/service-worker.js').catch(()=>{});}</script>
+
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        body{
+            background-image: url("{{ url_for('static', filename='back.jpeg') }}"),
+                              url("{{ url_for('static', filename='bg1.png') }}");
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ---------------- NAVBAR ---------------- */
+
+        .navbar {
+            padding: 10px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 30px;
+            margin: 15px auto;
+            max-width: 1100px;
+        }
+
+        .navdiv {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .logo a {
+            font-size: 28px;
+            font-weight: 800;
+            color: rgb(88, 10, 10);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .nav-links a {
+            background-color: rgb(99, 99, 24);
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: white;
+            text-decoration: none;
+            transition: 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            background-color: rgb(70, 70, 15);
+        }
+
+        /* ---------------- HERO SECTION ---------------- */
+
+        section.hero {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .learn{
+            color: rgb(18, 97, 18);
+            font-size: 28px;
+        }
+
+        .save{
+            color: rgb(89, 19, 19);
+            font-weight: bold;
+            font-size: 40px;
+            margin-top: 5px;
+        }
+
+        .fun {
+            max-width: 700px;
+            margin: 20px auto;
+            font-size: 18px;
+        }
+
+        .get{
+            display: inline-block;
+            margin-top: 20px;
+            border-radius: 30px;
+            padding: 12px 35px;
+            background-color: rgb(9, 125, 9);
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.3s ease;
+        }
+
+        .get:hover{
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+        }
+
+        /* ---------------- FEATURES ---------------- */
+
+        .features {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            padding: 50px 20px;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            width: 260px;
+            max-width: 90%;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transition: 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+        }
+
+        .card img {
+            width: 100%;
+            max-width: 180px;
+            margin-bottom: 15px;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            color: #444;
+        }
+
+        .card:nth-child(2) {
+            border: 3px solid gold;
+        }
+
+        /* ---------------- RESPONSIVE ---------------- */
+
+        @media (max-width: 768px) {
+
+            .logo a {
+                font-size: 22px;
+            }
+
+            .learn {
+                font-size: 22px;
+            }
+
+            .save {
+                font-size: 30px;
+            }
+
+            .fun {
+                font-size: 16px;
+            }
+
+            .features {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .navdiv {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .nav-links {
+                flex-direction: column;
+                width: 100%;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="navdiv">
+            <div class="logo">
+                <a href="{{ url_for('home') }}">EnviroLearn</a>
+            </div>
+
+            <div class="nav-links">
+                <a href="{{ url_for('about') }}">About</a>
+                <a href="{{ url_for('role') }}">Login / SignUp</a>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1 class="learn">Learn. Play.</h1>
+    <h1 class="save">Save the Planet</h1>
+    <h2 class="fun">
+        A fun and interactive environmental education platform designed specially for kids
+    </h2>
+
+    <a href="{{ url_for('role') }}" class="get">Get Started</a>
+</section>
+
+<section class="features">
+    <div class="card">
+        <img src="{{ url_for('static', filename='games.png') }}" alt="Fun Games">
+        <h3>Fun Games</h3>
+        <p>Learn environmental concepts through exciting games.</p>
+    </div>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='badges.png') }}" alt="Earn Badges">
+        <h3>Earn Badges</h3>
+        <p>Complete challenges and earn eco-hero badges.</p>
+    </div>
+
+    <div class="card">
+        <img src="{{ url_for('static', filename='actions.png') }}" alt="Real Life Actions">
+        <h3>Real-Life Actions</h3>
+        <p>Simple daily actions to protect the Earth.</p>
+    </div>
+</section>
+
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future Earth Innovators</title>
+
+<style>
+body{
+    margin:0;
+    font-family:'Courier New', Courier, monospace;
+    min-height:100vh;
+    background: linear-gradient(120deg, #84fab0, #8fd3f4);
+    color:#222;
+}
+
+.container{
+    max-width:800px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+h1{ text-align:center; }
+
+#question{
+    font-size:20px;
+    margin-bottom:20px;
+}
+
+.option{
+    display:block;
+    background:#f1f1f1;
+    margin:10px 0;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.option:hover{ background:#d9f5ff; }
+
+#feedback{
+    margin-top:15px;
+    font-weight:bold;
+    min-height:24px;
+}
+
+button{
+    padding:12px 20px;
+    margin-top:20px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#3498db;
+    color:white;
+    cursor:pointer;
+}
+
+.btnRow{
+    display:flex;
+    justify-content:flex-end;
+}
+
+#scoreBox{
+    text-align:right;
+    font-weight:bold;
+}
+
+#endScreen{
+    text-align:center;
+    display:none;
+}
+
+.correct{
+    background:#2ecc71 !important;
+    color:white;
+}
+
+.wrong{
+    background:#e74c3c !important;
+    color:white;
+}
+
+/* Top Right Back Button */
+.top-right{
+    position:absolute;
+    top:20px;
+    right:30px;
+}
+
+.back-btn{
+    background:white;
+    color:#2ecc71;
+    padding:10px 18px;
+    font-size:15px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#e8fff1;
+    transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+<div class="top-right">
+    <button class="back-btn" onclick="goBack()"Back</button>
+</div>
+<div class="container" id="quizBox">
+
+<h1>🚀 Future Earth Innovators</h1>
+
+<div id="scoreBox">
+Score: <span id="score">0</span>/10
+</div>
+
+<div id="question"></div>
+<div id="options"></div>
+<div id="feedback"></div>
+
+<div class="btnRow"> 
+    <button onclick="nextQuestion()">Next</button>
+</div> 
+
+</div>
+
+<div class="container" id="endScreen">
+    <h1>🌍 Innovation Mission Complete!</h1>
+    <h2 id="finalScore"></h2>
+    <p id="message"></p>
+    <button onclick="location.reload()">Play Again</button>
+</div>
+
+
+<script>
+
+const quiz = [
+{q:"Solar panels generate energy from:",o:["Wind","Sunlight","Coal","Water"],a:1},
+{q:"Electric cars help reduce:",o:["Air pollution","Homework","Rain","Sunlight"],a:0},
+{q:"Smart homes save energy by:",o:["Leaving lights on","Automation & sensors","Burning fuel","Wasting water"],a:1},
+{q:"Wind turbines produce:",o:["Plastic","Electricity","Smoke","Noise pollution"],a:1},
+{q:"Innovation for sustainability means:",o:["Ignoring nature","Using resources wisely","Creating waste","Burning forests"],a:1},
+{q:"Vertical farming helps cities by:",o:["Growing food indoors","Wasting land","Increasing pollution","Using more fuel"],a:0},
+{q:"Biodegradable materials:",o:["Never break down","Harm wildlife","Decompose naturally","Are metal"],a:2},
+{q:"Using public transport supports:",o:["Traffic increase","Lower emissions","Fuel waste","Noise"],a:1},
+{q:"Green technology focuses on:",o:["Environmental protection","Deforestation","Overconsumption","Pollution"],a:0},
+{q:"Future innovators should aim to:",o:["Protect Earth","Waste resources","Ignore climate","Pollute oceans"],a:0}
+];
+
+let index = 0;
+let score = 0;
+let answered = false;
+
+function loadQuestion(){
+    answered = false;
+    document.getElementById("feedback").textContent = "";
+    let q = quiz[index];
+    document.getElementById("question").textContent = q.q;
+
+    let optionsHTML = "";
+    q.o.forEach((opt,i)=>{
+        optionsHTML += `<div class="option" onclick="select(${i})">${opt}</div>`;
+    });
+
+    document.getElementById("options").innerHTML = optionsHTML;
+}
+
+function select(i){
+    if(answered) return;
+    answered = true;
+
+    let correct = quiz[index].a;
+    let optionDivs = document.querySelectorAll(".option");
+
+    optionDivs.forEach((div,idx)=>{
+        if(idx === correct) div.classList.add("correct");
+        if(idx === i && i !== correct) div.classList.add("wrong");
+        div.style.pointerEvents = "none";
+    });
+
+    if(i === correct){
+        score++;
+        document.getElementById("feedback").textContent =
+        "✨ Brilliant thinking — innovator mindset!";
+    } else {
+        document.getElementById("feedback").textContent =
+        "💡 Not quite — innovators learn from mistakes!";
+    }
+
+    document.getElementById("score").textContent = score;
+}
+
+function nextQuestion(){
+    if(!answered) return;
+    index++;
+    if(index >= quiz.length){
+        endQuiz();
+        return;
+    }
+    loadQuestion();
+}
+
+function endQuiz(){
+    document.getElementById("quizBox").style.display = "none";
+    document.getElementById("endScreen").style.display = "block";
+
+    document.getElementById("finalScore").textContent =
+    "You scored " + score + " out of " + quiz.length;
+
+    let msg = "";
+    if(score === 10)
+        msg = "🏆 Visionary! You're ready to shape the future!";
+    else if(score >= 7)
+        msg = "🚀 Great work — innovation skills growing!";
+    else if(score >= 4)
+        msg = "🌱 Good start — keep exploring ideas!";
+    else
+        msg = "💚 Every innovator begins somewhere — try again!";
+
+    document.getElementById("message").textContent = msg;
+
+    // ✅ SAVE TO BACKEND (Quiz 6 Route)
+    fetch("/save-quiz5-score", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "score=" + score
+    })
+    .then(response => {
+        if(response.ok){
+            console.log("Score saved successfully");
+        } else {
+            console.log("Error saving score");
+        }
+    })
+    .catch(error => {
+        console.log("Network error:", error);
+    });
+}
+
+loadQuestion();
+function goBack(){
+    window.location.href = "{{ url_for('quizzes') }}";
+}
+</script>
+
+</body>
+</html>

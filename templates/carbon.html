@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>🌍 Carbon Footprint Game</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family: 'Courier New', Courier, monospace;
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background-image: url("{{ url_for('static', filename='carbon.jpg') }}");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.container{
+    background: rgba(255, 255, 255, 0.9);
+    padding:40px;
+    border-radius:20px;
+    width:420px;
+    text-align:center;
+    box-shadow:0 8px 25px rgba(0,0,0,0.3);
+    backdrop-filter: blur(5px);
+}
+
+h1{
+    color:#2d6a4f;
+    margin-bottom:15px;
+}
+
+h2{
+    margin-bottom:20px;
+}
+
+p{
+    margin-bottom:20px;
+}
+
+button{
+    padding:12px 20px;
+    margin:10px 5px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    background:#2d6a4f;
+    color:white;
+    width:100%;
+}
+
+.start-btn{
+    background:#2d6a4f;
+    color:white;
+}
+
+.option-btn{
+    background:#74c69d;
+    color:white;
+    width:100%;
+}
+
+.option-btn:hover{
+    background:#40916c;
+}
+
+.hidden{
+    display:none;
+}
+
+.score{
+    font-size:18px;
+    margin-bottom:15px;
+    color:#1b4332;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div id="instructions">
+    <h1>Carbon Footprint Calculator</h1>
+    <p>
+        Answer all the questions regarding your daily activities. <br><br>
+        🌱 Eco-friendly choice = +10 points <br>
+        🚗 High carbon choice = -5 points <br><br>
+        Let’s see how green you are!
+    </p>
+    <button class="start-btn" onclick="startGame()">Start Playing</button>
+</div>
+
+<div id="game" class="hidden">
+    <div class="score">Score: <span id="score">0</span></div>
+    <h2 id="question"></h2>
+    <div id="options"></div>
+</div>
+
+<div id="result" class="hidden">
+    <h2 id="finalScore"></h2>
+    <h3 id="reward"></h3>
+
+    <button class="start-btn" onclick="playAgain()">🔄 Play Again</button>
+    <button class="option-btn" onclick="goBack()">⬅ Back to Games</button>
+</div>
+
+</div>
+
+<script>
+let score = 0;
+let currentQuestion = 0;
+
+const questions = [
+    { question: "How do you go to school?",
+      options: [
+        { text: "Car 🏎️", eco: false },
+        { text: "Walk / Cycle 🚶‍♂️🚲", eco: true }
+      ]
+    },
+    { question: "How long do you keep lights on?",
+      options: [
+        { text: "Switch off when not needed 💡", eco: true },
+        { text: "Leave them on all day 🔆", eco: false }
+      ]
+    },
+    { question: "How do you carry water?",
+      options: [
+        { text: "Reusable bottle 🧴", eco: true },
+        { text: "Single-use plastic bottle 🥤", eco: false }
+      ]
+    },
+    { question: "What do you do with waste?",
+      options: [
+        { text: "Throw everything together 🗑️", eco: false },
+        { text: "Separate and recycle ♻️", eco: true },
+      ]
+    },
+    { question: "How often do you waste food?",
+      options: [
+        { text: "Finish all food 🍎", eco: true },
+        { text: "Waste food often 🍕", eco: false }
+      ]
+    },
+    { question: "How do you cool your room?",
+      options: [
+        { text: "AC all the time ❄️", eco: false },
+        { text: "Use fan / natural air 🌬️", eco: true },
+      ]
+    }
+];
+
+function startGame(){
+    document.getElementById("instructions").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+    loadQuestion();
+}
+
+function loadQuestion(){
+    if(currentQuestion < questions.length){
+        document.getElementById("question").innerText =
+            questions[currentQuestion].question;
+
+        const optionsDiv = document.getElementById("options");
+        optionsDiv.innerHTML = "";
+
+        questions[currentQuestion].options.forEach(option => {
+            const btn = document.createElement("button");
+            btn.innerText = option.text;
+            btn.classList.add("option-btn");
+            btn.onclick = () => selectAnswer(option.eco);
+            optionsDiv.appendChild(btn);
+        });
+    } else {
+        showResult();
+    }
+}
+
+function selectAnswer(isEco){
+    if(isEco){
+        score += 10;
+    } else {
+        score -= 5;
+    }
+
+    document.getElementById("score").innerText = score;
+    currentQuestion++;
+    loadQuestion();
+}
+
+function showResult(){
+    document.getElementById("game").classList.add("hidden");
+    document.getElementById("result").classList.remove("hidden");
+
+    document.getElementById("finalScore").innerText =
+        "Your Final Score: " + score;
+
+    let rewardMessage = "";
+
+    if(score >= 50){
+        rewardMessage = "🌟 Eco Hero! You are saving the planet!";
+    }
+    else if(score >= 20){
+        rewardMessage = "🌱 Green Starter! Keep improving!";
+    }
+    else{
+        rewardMessage = "⚠️ Try Again! You can make better eco choices!";
+    }
+
+    document.getElementById("reward").innerText = rewardMessage;
+
+    // Send score to backend
+    // Send score to backend
+fetch("{{ url_for('save_carbon_score') }}", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "score=" + score
+});
+   
+}
+
+function playAgain(){
+    score = 0;
+    currentQuestion = 0;
+
+    document.getElementById("score").innerText = score;
+    document.getElementById("result").classList.add("hidden");
+    document.getElementById("instructions").classList.remove("hidden");
+}
+
+function goBack(){
+    window.location.href = "{{ url_for('games') }}";
+}
+</script>
+
+</body>
+</html>

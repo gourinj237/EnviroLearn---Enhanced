@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>EnviroLearn</title>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        *{
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .navbar{
+            background: white;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 0 15px;
+            z-index: 1000; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .navdiv{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo a{
+            font-size: 35px;
+            font-weight: 800;
+            color: green;
+        }
+
+        li{
+            list-style: none;
+            display: inline-block;
+            margin-left: 15px;
+        }
+
+        li a{
+            color: green;
+            font-size: 18px;
+        }
+
+        .hdiv,.idiv,.jdiv,.kdiv,.ldiv{  
+            width: 400px;
+            height: 320px;
+            text-align: center;
+            padding-bottom: 40px;
+            transition: transform 0.3s ease, box-shadow 0.25s ease;
+        }
+
+        .hdiv:hover,.idiv:hover,.jdiv:hover,.kdiv:hover,.ldiv:hover {
+            transform: scale(1.08);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .games,.videos,.challenges,.quizzes,.leader{
+            width: 200px;
+            height: 200px;
+            cursor: pointer;
+            background-color: white;
+        }
+
+        .explore,.learn,.play{
+            text-align: center;
+            color: rgb(52, 101, 52);
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            font-size: 30px;
+        }
+
+        .gdiv{
+            display: flex;
+            justify-content: space-evenly; 
+            align-items: flex-start;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+
+        .contsec {
+            min-height: 100vh;
+            background-image: url("{{ url_for('static', filename='bg2.png') }}");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: top;
+        }
+
+        .contentbg {
+            padding: 40px 60px;
+        }
+
+        .g1,.g2,.g3,.g4,.g6,.g7,.g8,.g9,.g10,.g11 {
+            color: green;
+            font-family: 'Courier New', Courier, monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav class="navbar">
+        <div class="navdiv">
+            <div class="logo">
+                <a href="{{ url_for('home') }}">EnviroLearn</a>
+            </div>
+            <ul>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('games') }}">Games</a></li>
+                <li><a href="{{ url_for('quizzes') }}">Quizzes</a></li>
+                <li><a href="{{ url_for('videos') }}">Videos</a></li>
+                <li><a href="{{ url_for('challenges') }}">Challenges</a></li>
+                <li><a href="{{ url_for('home') }}">Log Out</a></li>
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<section class="contsec">
+    <div class="contentbg">
+        <h2 class="learn">Learn to Love the Earth</h2>
+        <h3 class="play">Play games, watch videos and complete challenges to become an Eco Hero!</h3>
+
+        <h2 class="explore">Explore</h2>
+
+        <div class="gdiv">
+
+            <div class="hdiv" onclick="location.href='{{ url_for('games') }}'">
+                <img src="{{ url_for('static', filename='games1.png') }}" class="games" alt="Games">
+                <h2 class="g1">Games</h2>
+                <h4 class="g2">Learn through Play</h4>
+            </div>
+
+            <div class="idiv" onclick="location.href='{{ url_for('videos') }}'">
+                <img src="{{ url_for('static', filename='videos.png') }}" class="videos" alt="Videos">
+                <h2 class="g3">Videos</h2>
+                <h4 class="g4">Watch, Learn, Protect</h4>
+            </div>
+
+            <div class="jdiv" onclick="location.href='{{ url_for('quizzes') }}'">
+                <img src="{{ url_for('static', filename='quizzes.png') }}" class="quizzes" alt="Quizzes">
+                <h2 class="g6">Quizzes</h2>
+                <h4 class="g7">Test your Knowledge</h4>
+            </div>
+
+            <div class="kdiv" onclick="location.href='{{ url_for('challenges') }}'">
+                <img src="{{ url_for('static', filename='challenges.png') }}" class="challenges" alt="Challenges">
+                <h2 class="g8">Challenges</h2>
+                <h4 class="g9">Take Action, Make an Impact!</h4>
+            </div>
+
+            <div class="ldiv" onclick="location.href='{{ url_for('leaderboard') }}'">
+                <img src="{{ url_for('static', filename='leaderboard.png') }}" class="leader" alt="Leaderboard">
+                <h2 class="g10">Leaderboard</h2>
+                <h4 class="g11">Earn Rewards</h4>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

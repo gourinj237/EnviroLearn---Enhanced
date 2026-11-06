@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Eco Challenges</title>
+    <style>
+        
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background: url("{{ url_for('static', filename='challengesbg.jpg') }}") no-repeat center center fixed;
+            background-size: cover;
+            background-attachment: fixed;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .main-wrapper {
+            max-width: 920px;
+            margin: 40px auto;
+            padding: 35px 30px;
+            background: rgba(255, 255, 255, 0.681);
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(5, 64, 27, 0.2);
+            backdrop-filter: blur(4px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a3a1a;
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-bottom: 24px;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.3);
+        }
+
+
+        .challenge-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+        }
+
+
+        .challenge-box {
+            background: #fffde7;
+            border-left: 5px solid #43a047;
+            border-radius: 16px;
+            padding: 16px 18px;
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .challenge-box:hover {
+            transform: scale(1.025);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.13);
+        }
+
+        .challenge-box.inactive {
+            background: #f5f5dc;
+            pointer-events: none;
+            opacity: 0.6;
+            border-left-color: #aaa;
+        }
+
+
+        .challenge-box h3 {
+            margin: 0 0 2px 0;
+            font-size: 20px;
+            font-weight: 800;
+            color: #1b4d1e;
+        }
+
+        .challenge-desc {
+            font-size: 13.5px;
+            color: #4a4a4a;
+            margin: 0 0 8px 0;
+            line-height: 1.4;
+        }
+
+
+        .timer {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1b4d1e;
+            margin: 4px 0 6px 0;
+            letter-spacing: 1px;
+            font-variant-numeric: tabular-nums;
+        }
+
+
+        .photo-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .photo-label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2d6b30;
+            margin-top: 4px;
+        }
+
+        .challenge-box input[type="file"] {
+            display: block;
+            font-size: 11px;
+            color: #333;
+            margin: 2px 0 4px 0;
+            max-width: 100%;
+            
+            padding: 4px 0;
+        }
+
+        .challenge-box input[type="file"]:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+
+        .btn-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        button {
+            display: inline-block;
+            padding: 5px 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: #43a047;
+            color: #fff;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: 'Courier New', Courier, monospace;
+            transition: background-color 0.2s, transform 0.1s;
+            min-width: 0;
+            white-space: nowrap;
+            
+            min-height: 36px;
+            touch-action: manipulation;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: #2e7d32;
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background-color: #b0b0b0;
+            color: #fff;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+
+        .submission-info {
+            font-size: 11px;
+            color: #1b4d1e;
+            background: rgba(67, 160, 71, 0.1);
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin-top: 4px;
+            line-height: 1.6;
+            display: block;
+            min-height: 0;
+        }
+
+        .submission-info:empty {
+            padding: 0;
+            background: transparent;
+        }
+
+
+        .badge-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 28px;
+        }
+
+
+        .badge {
+            text-align: center;
+            padding: 12px 8px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.4);
+            transition: transform 0.3s, opacity 0.3s, background 0.3s;
+            font-size: 28px;
+        }
+
+        .badge p {
+            font-size: 11px;
+            font-weight: 700;
+            margin: 4px 0 0 0;
+            color: #1a3a1a;
+        }
+
+        .locked {
+            opacity: 0.3;
+            filter: grayscale(0.5);
+        }
+
+        .unlocked {
+            opacity: 1;
+            background: linear-gradient(135deg, #20da26, #0f8312);
+            transform: scale(1.06);
+            box-shadow: 0 4px 14px rgba(15, 131, 18, 0.4);
+        }
+
+        .ultimate {
+            grid-column: span 4;
+            font-size: 36px;
+            padding: 16px;
+        }
+
+.back-btn{
+    position: fixed;
+    top: 20px;
+    right: 25px;
+    padding: 8px 16px;
+    background: #2e7d32;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: 'Courier New', Courier, monospace;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.back-btn:hover{
+    background: #1b5e20;
+}
+        @media (max-width: 768px) {
+            .main-wrapper {
+                margin: 20px 14px;
+                padding: 24px 18px;
+                border-radius: 18px;
+            }
+
+            h1 {
+                font-size: 1.35rem;
+                margin-bottom: 18px;
+            }
+
+            .challenge-container {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+
+
+            .challenge-box:hover {
+                transform: none;
+                box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            }
+
+            .challenge-box h3 {
+                font-size: 14px;
+            }
+
+            .challenge-desc {
+                font-size: 12px;
+            }
+
+            .timer {
+                font-size: 28px; 
+            }
+
+        
+            .btn-row {
+                gap: 8px;
+            }
+
+            button {
+                flex: 1 1 auto;
+                font-size: 13px;
+                padding: 8px 10px;
+                min-height: 40px;
+            }
+
+            .photo-label {
+                font-size: 12px;
+            }
+
+            .challenge-box input[type="file"] {
+                font-size: 12px;
+            }
+
+            .badge-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .badge {
+                font-size: 24px;
+                padding: 10px 6px;
+            }
+
+            .badge p {
+                font-size: 10px;
+            }
+
+            .ultimate {
+                grid-column: span 2;
+                font-size: 28px;
+            }
+        }
+
+
+        @media (max-width: 400px) {
+            .main-wrapper {
+                margin: 10px 8px;
+                padding: 18px 12px;
+            }
+
+            h1 {
+                font-size: 1.1rem;
+            }
+
+            .timer {
+                font-size: 24px;
+            }
+
+            button {
+                font-size: 12px;
+                padding: 7px 8px;
+            }
+
+            .badge-container {
+                gap: 8px;
+            }
+
+            .badge {
+                font-size: 20px;
+                padding: 8px 4px;
+            }
+
+            .badge p {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+<body>
+<button class="back-btn" onclick="goBack()">⬅ Back</button>
+<div class="main-wrapper">
+    <h1>🌍 Eco Challenge Tasks</h1>
+
+    <div class="challenge-container">
+
+        
+        <div class="challenge-box">
+            <h3>🧹 Clean Study Area</h3>
+            <p class="challenge-desc">Tidy your desk and study area, organize your books and stationery, and remove all trash.</p>
+            <div id="timer1" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before1" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after1" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start1" onclick="startTask(1)">▶ Start</button>
+                <button id="end1" onclick="endTask(1)">⏹ End</button>
+                <button id="submit1" onclick="submitTask(1)">📤 Submit</button>
+            </div>
+            <div id="submission1" class="submission-info"></div>
+        </div>
+
+        
+        <div class="challenge-box">
+            <h3>♻️ Waste Segregation</h3>
+            <p class="challenge-desc">Separate your waste into recyclables, compost, and trash. Keep your area clean.</p>
+            <div id="timer2" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before2" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after2" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start2" onclick="startTask(2)">▶ Start</button>
+                <button id="end2" onclick="endTask(2)">⏹ End</button>
+                <button id="submit2" onclick="submitTask(2)">📤 Submit</button>
+            </div>
+            <div id="submission2" class="submission-info"></div>
+        </div>
+
+        
+        <div class="challenge-box">
+            <h3>💡 Energy Saver</h3>
+            <p class="challenge-desc">Turn off lights and electronic devices when not in use to conserve energy.</p>
+            <div id="timer3" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before3" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after3" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start3" onclick="startTask(3)">▶ Start</button>
+                <button id="end3" onclick="endTask(3)">⏹ End</button>
+                <button id="submit3" onclick="submitTask(3)">📤 Submit</button>
+            </div>
+            <div id="submission3" class="submission-info"></div>
+        </div>
+
+        
+        <div class="challenge-box">
+            <h3>🌱 Plant Care</h3>
+            <p class="challenge-desc">Water plants, clean the pot area, remove dead leaves, and take care of plant health.</p>
+            <div id="timer4" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before4" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after4" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start4" onclick="startTask(4)">▶ Start</button>
+                <button id="end4" onclick="endTask(4)">⏹ End</button>
+                <button id="submit4" onclick="submitTask(4)">📤 Submit</button>
+            </div>
+            <div id="submission4" class="submission-info"></div>
+        </div>
+
+        
+        <div class="challenge-box">
+            <h3>🚮 Cleanup Drive</h3>
+            <p class="challenge-desc">Pick up trash and organize your surroundings in your campus or home area.</p>
+            <div id="timer5" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before5" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after5" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start5" onclick="startTask(5)">▶ Start</button>
+                <button id="end5" onclick="endTask(5)">⏹ End</button>
+                <button id="submit5" onclick="submitTask(5)">📤 Submit</button>
+            </div>
+            <div id="submission5" class="submission-info"></div>
+        </div>
+
+        
+        <div class="challenge-box">
+            <h3>🎒 Organize School Bag</h3>
+            <p class="challenge-desc">Arrange all your books and supplies neatly in your school bag. Remove unnecessary items.</p>
+            <div id="timer6" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before6" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after6" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start6" onclick="startTask(6)">▶ Start</button>
+                <button id="end6" onclick="endTask(6)">⏹ End</button>
+                <button id="submit6" onclick="submitTask(6)">📤 Submit</button>
+            </div>
+            <div id="submission6" class="submission-info"></div>
+        </div>
+
+       
+        <div class="challenge-box">
+            <h3>💧 Water Saving</h3>
+            <p class="challenge-desc">Reduce water usage: turn off taps when not needed, avoid wastage, and be mindful of consumption.</p>
+            <div id="timer7" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before7" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after7" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start7" onclick="startTask(7)">▶ Start</button>
+                <button id="end7" onclick="endTask(7)">⏹ End</button>
+                <button id="submit7" onclick="submitTask(7)">📤 Submit</button>
+            </div>
+            <div id="submission7" class="submission-info"></div>
+        </div>
+
+        
+        <div class="challenge-box">
+            <h3>👜 Cloth Bag Mission</h3>
+            <p class="challenge-desc">Use cloth bags instead of plastic bags when shopping to reduce plastic waste.</p>
+            <div id="timer8" class="timer">0:00</div>
+            <div class="photo-row">
+                <label class="photo-label">📷 Before Photo:</label>
+                <input type="file" id="before8" accept="image/*" capture="environment">
+                <label class="photo-label">📸 After Photo:</label>
+                <input type="file" id="after8" accept="image/*" capture="environment">
+            </div>
+            <div class="btn-row">
+                <button id="start8" onclick="startTask(8)">▶ Start</button>
+                <button id="end8" onclick="endTask(8)">⏹ End</button>
+                <button id="submit8" onclick="submitTask(8)">📤 Submit</button>
+            </div>
+            <div id="submission8" class="submission-info"></div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    #custom-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    #custom-modal-overlay.active {
+        display: flex;
+    }
+    #custom-modal-box {
+        background: #fff;
+        border-radius: 14px;
+        padding: 28px 28px 20px 28px;
+        max-width: 360px;
+        width: 90%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 14px;
+        color: #1a3a1a;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    #custom-modal-btn {
+        display: block;
+        margin: 18px 0 0 auto;
+        padding: 8px 28px;
+        background: #1565c0;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: 'Courier New', Courier, monospace;
+        cursor: pointer;
+        min-height: 38px;
+    }
+    #custom-modal-btn:hover { background: #0d47a1; }
+</style>
+
+<div id="custom-modal-overlay">
+    <div id="custom-modal-box">
+        <span id="custom-modal-msg"></span>
+        <button id="custom-modal-btn" onclick="closeModal()">OK</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
+<script>
+    let activeTask = null;
+    let startTime = null;
+    let endTime   = null;
+    let interval = null;
+    const minimumTime = 1 * 60; 
+    let endPressedOnce = false;
+
+    let modalResolve = null;
+
+    function showModal(msg) {
+        return new Promise(resolve => {
+            modalResolve = resolve;
+            document.getElementById("custom-modal-msg").textContent = msg;
+            document.getElementById("custom-modal-overlay").classList.add("active");
+        });
+    }
+
+    function closeModal() {
+        document.getElementById("custom-modal-overlay").classList.remove("active");
+        if (modalResolve) { modalResolve(); modalResolve = null; }
+    }
+
+
+
+    // Server-side cooldown state — per user, per task, loaded on page init
+    const serverCooldowns = {};
+
+    async function loadAllCooldowns() {
+        const checks = [];
+        for (let i = 1; i <= 8; i++) {
+            checks.push(
+                fetch(`/api/challenges/${i}/cooldown`)
+                    .then(r => r.json())
+                    .then(data => {
+                        serverCooldowns[i] = data.locked ? (data.hours_remaining || 1) : 0;
+                        if (data.locked) applyLockedUI(i, data.hours_remaining);
+                    })
+                    .catch(() => { serverCooldowns[i] = 0; })
+            );
+        }
+        await Promise.all(checks);
+    }
+
+    function applyLockedUI(taskId, hoursLeft) {
+        const box = document.getElementById("start" + taskId)?.closest(".challenge-box");
+        if (box) box.classList.add("inactive");
+        document.getElementById("start"  + taskId).disabled = true;
+        document.getElementById("end"    + taskId).disabled = true;
+        document.getElementById("before" + taskId).disabled = true;
+        document.getElementById("after"  + taskId).disabled = true;
+        document.getElementById("submit" + taskId).disabled = true;
+        const subDiv = document.getElementById("submission" + taskId);
+        if (subDiv) subDiv.innerHTML = `⛔ Completed — available again in ${hoursLeft} hour(s).`;
+    }
+
+    function isTaskLocked(taskId) {
+        if (serverCooldowns[taskId] > 0) {
+            showModal("⛔ Task already completed! Try again in " + serverCooldowns[taskId] + " hour(s).");
+            return true;
+        }
+        return false;
+    }
+
+
+
+    function startTask(taskId) {
+
+        if (activeTask !== null) {
+            showModal("⚠️ Finish the current task first before starting another!");
+            return;
+        }
+
+        if (isTaskLocked(taskId)) return;
+
+        const beforePhoto = document.getElementById("before" + taskId).files[0];
+        if (!beforePhoto) {
+            showModal("📷 Please upload the BEFORE photo before starting the timer!");
+            return;
+        }
+
+        activeTask = taskId;
+        startTime = new Date();
+        endPressedOnce = false;
+
+        
+        document.getElementById("after" + taskId).disabled = true;
+        document.getElementById("submit" + taskId).disabled = true;
+
+        interval = setInterval(updateTimer, 1000);
+        disableOtherTasks(taskId, true);
+    }
+
+
+
+    function updateTimer() {
+        if (!activeTask) return;
+
+        let totalSec = Math.floor((new Date() - startTime) / 1000);
+        let minutes = Math.floor(totalSec / 60);
+        let remaining = totalSec % 60;
+
+        document.getElementById("timer" + activeTask).innerText =
+            minutes + ":" + (remaining < 10 ? "0" : "") + remaining;
+    }
+
+
+
+    function endTask(taskId) {
+
+        if (activeTask !== taskId) {
+            showModal("⚠️ You must finish the started task!");
+            return;
+        }
+
+        let totalSeconds = Math.floor((new Date() - startTime) / 1000);
+        const afterInput = document.getElementById("after" + taskId);
+        const afterPhoto = afterInput.files[0];
+
+        
+        if (totalSeconds < minimumTime) {
+            showModal("⏳ Not enough time! You need to spend at least " + (minimumTime / 60) + " minute(s) on this task.");
+            return;
+        }
+
+        
+        if (!endPressedOnce) {
+            showModal("📸 Please upload the AFTER photo before ending the task. Your timer is still running!");
+            endPressedOnce = true;
+            afterInput.disabled = false; 
+            return;
+        }
+
+        
+        if (endPressedOnce && !afterPhoto) {
+            showModal("❌ Task canceled! You pressed End again without uploading the AFTER photo.");
+            cancelTask(taskId);
+            return;
+        }
+
+        
+        if (afterPhoto) {
+            clearInterval(interval);
+            endTime = new Date();   // ← save exact end time here
+            document.getElementById("submit" + taskId).disabled = false;
+            disableOtherTasks(taskId, false);
+            showModal("✅ Great job! Task ended successfully. You can now submit for verification.");
+        }
+    }
+
+
+
+    function cancelTask(taskId) {
+        clearInterval(interval);
+
+        document.getElementById("timer" + taskId).innerText = "0:00";
+        document.getElementById("after" + taskId).value = "";
+        document.getElementById("after" + taskId).disabled = true;
+        document.getElementById("submit" + taskId).disabled = true;
+
+        activeTask = null;
+        endTime = null;
+        endPressedOnce = false;
+
+        disableOtherTasks(taskId, false);
+        showModal("⛔ Task has been canceled.");
+    }
+
+
+
+    function convertDMSToDD(dms, ref) {
+        // Handle case where dms values are rational numbers (objects with numerator/denominator)
+        // or plain numbers, or an array of numbers
+        function toDecimal(val) {
+            if (val === null || val === undefined) return 0;
+            if (typeof val === 'number') return val;
+            // EXIF rational: {numerator, denominator} or array [num, den]
+            if (typeof val === 'object' && 'numerator' in val && 'denominator' in val) {
+                return val.denominator !== 0 ? val.numerator / val.denominator : 0;
+            }
+            if (Array.isArray(val) && val.length === 2) {
+                return val[1] !== 0 ? val[0] / val[1] : 0;
+            }
+            return parseFloat(val) || 0;
+        }
+
+        let degrees = 0, minutes = 0, seconds = 0;
+
+        if (Array.isArray(dms)) {
+            degrees = toDecimal(dms[0]);
+            minutes = toDecimal(dms[1]);
+            seconds = toDecimal(dms[2]);
+        } else if (typeof dms === 'number') {
+            return (ref === "S" || ref === "W") ? -dms : dms;
+        }
+
+        let dd = degrees + (minutes / 60) + (seconds / 3600);
+        if (ref === "S" || ref === "W") dd *= -1;
+        return dd;
+    }
+
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+
+        const a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) *
+            Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) *
+            Math.sin(dLon / 2);
+
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
+    }
+
+
+    function getCurrentLocation() {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject("❌ Geolocation is not supported by your browser.");
+                return;
+            }
+            navigator.geolocation.getCurrentPosition(
+                pos => resolve({
+                    lat: pos.coords.latitude,
+                    lon: pos.coords.longitude
+                }),
+                () => reject("❌ Location permission denied. Please allow location access and try again.")
+            );
+        });
+    }
+
+
+    function getImageMetadata(file) {
+        return new Promise((resolve) => {
+
+            // Always resolve with at least a file-based timestamp so submission is never
+            // blocked purely because EXIF GPS is missing (many Android phones strip GPS
+            // or store it in a format EXIF.js cannot parse).
+            const fallbackResult = {
+                latitude:  null,
+                longitude: null,
+                timestamp: null,
+                fileDate:  new Date(file.lastModified)  // reliable fallback timestamp
+            };
+
+            if (typeof EXIF === "undefined") {
+                console.warn("EXIF library not loaded.");
+                resolve(fallbackResult);
+                return;
+            }
+
+            EXIF.getData(file, function () {
+                const allTags = EXIF.getAllTags(this);
+                console.log("EXIF tags:", allTags);
+
+                const lat    = EXIF.getTag(this, "GPSLatitude");
+                const latRef = EXIF.getTag(this, "GPSLatitudeRef");
+                const lon    = EXIF.getTag(this, "GPSLongitude");
+                const lonRef = EXIF.getTag(this, "GPSLongitudeRef");
+
+                const date =
+                    EXIF.getTag(this, "DateTimeOriginal") ||
+                    EXIF.getTag(this, "DateTime") ||
+                    EXIF.getTag(this, "CreateDate");
+
+                console.log("GPS raw:", { lat, latRef, lon, lonRef, date });
+
+                const result = { ...fallbackResult };
+
+                if (date) result.timestamp = date;
+
+                if (lat && lon) {
+                    const latitude  = convertDMSToDD(lat, latRef);
+                    const longitude = convertDMSToDD(lon, lonRef);
+
+                    // Sanity check: valid lat/lon ranges
+                    if (Math.abs(latitude) <= 90 && Math.abs(longitude) <= 180 &&
+                        !(latitude === 0 && longitude === 0)) {
+                        result.latitude  = latitude;
+                        result.longitude = longitude;
+                    } else {
+                        console.warn("Invalid GPS after conversion:", latitude, longitude);
+                    }
+                }
+
+                resolve(result);
+            });
+        });
+    }
+
+
+    function parseExifDate(dateString) {
+        try {
+            const parts     = dateString.split(" ");
+            const dateParts = parts[0].split(":");
+            const timeParts = parts[1].split(":");
+
+            return new Date(
+                parseInt(dateParts[0]),      
+                parseInt(dateParts[1]) - 1,  
+                parseInt(dateParts[2]),      
+                parseInt(timeParts[0]),      
+                parseInt(timeParts[1]),      
+                parseInt(timeParts[2])       
+            );
+        } catch (e) {
+            return null;
+        }
+    }
+
+
+
+    async function submitTask(taskId) {
+
+        const beforePhoto = document.getElementById("before" + taskId).files[0];
+        const afterPhoto  = document.getElementById("after"  + taskId).files[0];
+
+        if (!beforePhoto || !afterPhoto) {
+            await showModal("📸 Both BEFORE and AFTER photos are required before submitting!");
+            return;
+        }
+
+        try {
+
+            const beforeMeta = await getImageMetadata(beforePhoto);
+            const afterMeta  = await getImageMetadata(afterPhoto);
+
+            // Get current browser location (primary location source)
+            const currentLocation = await getCurrentLocation();
+
+            // --- Location check ---
+            if (beforeMeta.latitude !== null && afterMeta.latitude !== null) {
+                const beforeDistance = calculateDistance(
+                    beforeMeta.latitude,
+                    beforeMeta.longitude,
+                    currentLocation.lat,
+                    currentLocation.lon
+                );
+                const afterDistance = calculateDistance(
+                    afterMeta.latitude,
+                    afterMeta.longitude,
+                    currentLocation.lat,
+                    currentLocation.lon
+                );
+
+                if (beforeDistance > 0.3 || afterDistance > 0.3) {
+                    await showModal(
+                        "❌ Location mismatch!\n\n" +
+                        "The photo location does not match your current location.\n" +
+                        "Photos must be taken at your current location.\n\n" +
+                        "Before photo distance: " + (beforeDistance * 1000).toFixed(0) + " meters away\n" +
+                        "After photo distance:  " + (afterDistance  * 1000).toFixed(0) + " meters away"
+                    );
+                    return;
+                }
+            }
+
+            // --- Timestamp check ---
+            let photoTime = null;
+            if (afterMeta.timestamp) {
+                photoTime = parseExifDate(afterMeta.timestamp);
+            }
+            if (!photoTime) {
+                photoTime = afterMeta.fileDate;
+            }
+
+            if (!photoTime) {
+                await showModal("❌ Could not read photo timestamp. Please use the original photo from your camera.");
+                return;
+            }
+
+            if (photoTime < startTime) {
+                await showModal(
+                    "❌ Photo time does not match task time!\n\n" +
+                    "The AFTER photo was taken before your task started.\n" +
+                    "Please take a new photo after completing the task."
+                );
+                return;
+            }
+
+            // Use endTime (saved when End was pressed) for accurate duration
+            const taskEnd    = endTime || new Date();
+            let totalSeconds = Math.floor((taskEnd - startTime) / 1000);
+            let minutes      = Math.floor(totalSeconds / 60);
+            let seconds      = totalSeconds % 60;
+
+            const submissionTime = new Date().toLocaleString();
+            const locationNote   = (beforeMeta.latitude !== null) ? "📍 GPS+Live ✅" : "📍 Live location ✅";
+
+            // ── Upload submission to server ───────────────────────
+            // Matches Flask route: POST /api/challenges/<id>/submit
+            const formData = new FormData();
+            formData.append("before_photo", beforePhoto);
+            formData.append("after_photo",  afterPhoto);
+            formData.append("start_time",   startTime.toISOString());
+            formData.append("end_time",     taskEnd.toISOString());
+            formData.append("latitude",     currentLocation.lat);
+            formData.append("longitude",    currentLocation.lon);
+
+            let uploadOk = false;
+            try {
+                const resp = await fetch(`/api/challenges/${taskId}/submit`, {
+                    method: "POST",
+                    body: formData
+                });
+                if (resp.ok) {
+                    uploadOk = true;
+                } else if (resp.status === 429) {
+                    uploadOk = true; // already submitted within 24h, cooldown enforced server-side
+                } else {
+                    const errData = await resp.json().catch(() => ({}));
+                    await showModal("⚠️ Server error: " + (errData.error || resp.status) + "\nYour task was completed but could not be saved. Please inform your teacher.");
+                }
+            } catch (netErr) {
+                await showModal("⚠️ Could not reach server: " + netErr.message + "\nYour task was completed but could not be saved. Please inform your teacher.");
+            }
+
+            if (uploadOk) {
+                // Update local cooldown state so UI locks immediately without page reload
+                serverCooldowns[taskId] = 24;
+            }
+
+            await showModal(
+                (uploadOk ? "🎉 Submitted successfully!\n\n" : "✅ Task completed (offline)\n\n") +
+                "⏱ Time Taken: " + minutes + " min " + seconds + " sec\n" +
+                "🕒 Submitted at: " + submissionTime + "\n" +
+                locationNote + "\n" +
+                "🕰️ Timestamp verified ✅"
+            );
+
+            const subDiv = document.getElementById("submission" + taskId);
+            if (subDiv) {
+                subDiv.innerHTML =
+                    (uploadOk ? "✅ Submitted to teacher<br>" : "⚠️ Completed (not saved)<br>") +
+                    "⏱ Time: " + minutes + " min " + seconds + " sec<br>" +
+                    "🕒 At: " + submissionTime + "<br>" +
+                    locationNote + " &nbsp; 🕰️ Timestamp ✅";
+            }
+
+            document.getElementById("submit" + taskId).disabled = true;
+            document.getElementById("start"  + taskId).disabled = true;
+            document.getElementById("end"    + taskId).disabled = true;
+
+            activeTask     = null;
+            endTime        = null;
+            endPressedOnce = false;
+
+        } catch (err) {
+            await showModal("⚠️ " + err);
+        }
+    }
+
+
+
+    function disableOtherTasks(currentTaskId, disable) {
+        for (let i = 1; i <= 8; i++) {
+            if (i === currentTaskId) continue;
+
+            const box = document.getElementById("start" + i).closest(".challenge-box");
+            if (box) {
+                if (disable) box.classList.add("inactive");
+                else         box.classList.remove("inactive");
+            }
+
+            document.getElementById("start"  + i).disabled = disable;
+            document.getElementById("end"    + i).disabled = disable;
+            document.getElementById("before" + i).disabled = disable;
+            document.getElementById("after"  + i).disabled = true;  
+            document.getElementById("submit" + i).disabled = true;
+        }
+    }
+
+    window.onload = async function () {
+        for (let i = 1; i <= 8; i++) {
+            document.getElementById("after"  + i).disabled = true;
+            document.getElementById("submit" + i).disabled = true;
+        }
+        // Load per-user cooldowns from server — fixes shared-browser issue
+        await loadAllCooldowns();
+    };
+
+    function goBack(){
+    window.location.href = "{{ url_for('index') }}";
+}
+</script>
+</body>
+</html>

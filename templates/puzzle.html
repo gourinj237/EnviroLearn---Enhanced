@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Image Puzzle Game</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+body{
+    height:100vh;
+    background-image: url("{{ url_for('static', filename='bgp.jpeg') }}");
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+#selection{
+    height:100vh;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    text-align:center;
+}
+
+#selection h1{
+    font-size:42px;
+    margin-bottom:40px;
+}
+
+.image-options{
+    display:flex;
+    gap:40px;
+    flex-wrap:wrap;
+    justify-content:center;
+}
+
+.image-card{
+    width:250px;
+    height:250px;
+    border-radius:20px;
+    overflow:hidden;
+    cursor:pointer;
+    transition:0.4s;
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+}
+
+.image-card img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.image-card:hover{
+    transform:scale(1.1);
+    box-shadow:0 20px 40px rgba(0,0,0,0.5);
+}
+
+#game{
+    height:100vh;
+    display:none;
+    justify-content:center;
+    align-items:center;
+}
+
+.game-container{
+    background:white;
+    padding:30px;
+    border-radius:20px;
+    text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+.stats{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:15px;
+    font-weight:bold;
+}
+
+.puzzle{
+    display:grid;
+    grid-template-columns: repeat(3, 120px);
+    grid-template-rows: repeat(3, 120px);
+    gap:4px;
+    margin:auto;
+}
+
+.tile{
+    width:120px;
+    height:120px;
+    cursor:pointer;
+    background-size:360px 360px;
+    border-radius:10px;
+}
+
+.empty{
+    background:none;
+    cursor:default;
+}
+
+button{
+    margin-top:15px;
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    background:#00b894;
+    color:white;
+    font-size:16px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#019875;
+}
+
+.overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    color:white;
+    font-size:28px;
+    flex-direction:column;
+    display:none;
+}
+
+h1{
+    color:black;
+}
+</style>
+</head>
+
+<body>
+ <div class="top-right">
+        <button class="back-btn" onclick="goBack()">Back</button>
+    </div>
+<div id="selection">
+    <h1>Choose Your Puzzle</h1>
+
+    <div class="image-options">
+        <div class="image-card" onclick="chooseImage('{{ url_for('static', filename='logo.png') }}')">
+            <img src="{{ url_for('static', filename='logo.png') }}">
+        </div>
+
+        <div class="image-card" onclick="chooseImage('https://wonderbunch.com/wp-content/uploads/2021/04/earthday-1024x1024.jpg')">
+            <img src="https://wonderbunch.com/wp-content/uploads/2021/04/earthday-1024x1024.jpg">
+        </div>
+
+        <div class="image-card" onclick="chooseImage('https://png.pngtree.com/png-clipart/20241001/original/pngtree-cute-cartoon-butterfly-clipart-illustration-png-image_16153150.png')">
+            <img src="https://png.pngtree.com/png-clipart/20241001/original/pngtree-cute-cartoon-butterfly-clipart-illustration-png-image_16153150.png">
+        </div>
+    </div>
+</div>
+
+<div id="game">
+    <div class="game-container">
+        <h2>Image Puzzle</h2>
+
+        <div class="stats">
+            <div>⏱ Time: <span id="timer">60</span>s</div>
+            <div>Moves: <span id="moves">0</span></div>
+        </div>
+
+        <div class="puzzle" id="puzzle"></div>
+
+        <button onclick="goHome()">Change Image</button>
+    </div>
+</div>
+
+<div class="overlay" id="overlay">
+    <div id="message"></div>
+    <button onclick="restartGame()">Play Again</button>
+    <button onclick="goBack()">Back to Games</button>
+</div>
+
+<script>
+let tiles = [];
+let maxMoves = 100;
+let movesLeft = maxMoves;
+let timeLeft = 180;
+let timerInterval;
+let imageUrl = "";
+
+const puzzle = document.getElementById("puzzle");
+const timerDisplay = document.getElementById("timer");
+const movesDisplay = document.getElementById("moves");
+const overlay = document.getElementById("overlay");
+const message = document.getElementById("message");
+
+function chooseImage(src){
+    imageUrl = src;
+    document.getElementById("selection").style.display="none";
+    document.getElementById("game").style.display="flex";
+    startGame();
+}
+
+function startGame(){
+    tiles = [0,1,2,3,4,5,6,7,8];
+    shuffleTiles();
+
+    movesLeft = maxMoves;
+    timeLeft = 180;
+
+    movesDisplay.innerText = movesLeft;
+    timerDisplay.innerText = timeLeft;
+
+    overlay.style.display="none";
+    clearInterval(timerInterval);
+    startTimer();
+    renderPuzzle();
+}
+
+function shuffleTiles(){
+    for(let i=tiles.length-1;i>0;i--){
+        let j = Math.floor(Math.random()*(i+1));
+        [tiles[i],tiles[j]] = [tiles[j],tiles[i]];
+    }
+}
+
+function renderPuzzle(){
+    puzzle.innerHTML="";
+    tiles.forEach((tile,index)=>{
+        const div = document.createElement("div");
+        div.classList.add("tile");
+
+        if(tile === 8){
+            div.classList.add("empty");
+        }else{
+            let x = (tile % 3) * -120;
+            let y = Math.floor(tile / 3) * -120;
+            div.style.backgroundImage = `url(${imageUrl})`;
+            div.style.backgroundPosition = `${x}px ${y}px`;
+        }
+
+        div.addEventListener("click",()=>moveTile(index));
+        puzzle.appendChild(div);
+    });
+}
+
+function moveTile(index){
+    const emptyIndex = tiles.indexOf(8);
+    const validMoves = [emptyIndex-1, emptyIndex+1, emptyIndex-3, emptyIndex+3];
+
+    if(validMoves.includes(index) &&
+       !(emptyIndex%3===0 && index===emptyIndex-1) &&
+       !(emptyIndex%3===2 && index===emptyIndex+1)){
+
+        [tiles[index],tiles[emptyIndex]] =
+        [tiles[emptyIndex],tiles[index]];
+
+        movesLeft--;
+        movesDisplay.innerText = movesLeft;
+
+        renderPuzzle();
+        checkWin();
+
+        if(movesLeft <= 0){
+            endGame(false);
+        }
+    }
+}
+
+function checkWin(){
+    if(tiles.join() === "0,1,2,3,4,5,6,7,8"){
+        endGame(true);
+    }
+}
+
+function startTimer(){
+    timerInterval = setInterval(()=>{
+        timeLeft--;
+        timerDisplay.innerText = timeLeft;
+
+        if(timeLeft <= 0){
+            endGame(false);
+        }
+    },1000);
+}
+
+function endGame(won){
+    clearInterval(timerInterval);
+    overlay.style.display="flex";
+
+    let finalScore = 0;
+
+    if(won){
+        finalScore = movesLeft + timeLeft;
+        message.innerText = "🏆 You Won! Score: " + finalScore;
+    } else {
+        finalScore = 0;
+        message.innerText = "💀 Game Over! Score: 0";
+    }
+
+    // SEND SCORE TO BACKEND (NO REDIRECT)
+    fetch("{{ url_for('save_puzzle_score') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "score=" + finalScore
+    });
+}
+
+function restartGame(){
+    overlay.style.display="none";
+    startGame();
+}
+
+function goHome(){
+    clearInterval(timerInterval);
+    document.getElementById("game").style.display="none";
+    document.getElementById("selection").style.display="flex";
+}
+
+function goBack(){
+    window.location.href = "{{ url_for('games') }}";
+}
+</script>
+
+</body>
+</html>

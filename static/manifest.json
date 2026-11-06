@@ -1,0 +1,42 @@
+{
+  "name": "EnviroLearn",
+  "short_name": "EnviroLearn",
+  "description": "A Gamified Environmental Education Platform for Schools",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#2ecc71",
+  "scope": "/",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/static/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/static/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Videos",
+      "short_name": "Videos",
+      "description": "Eco Learning Videos",
+      "url": "/videos",
+      "icons": [{"src": "/static/icons/icon-192.png", "sizes": "192x192"}]
+    },
+    {
+      "name": "Games",
+      "short_name": "Games",
+      "description": "Eco Games",
+      "url": "/games",
+      "icons": [{"src": "/static/icons/icon-192.png", "sizes": "192x192"}]
+    }
+  ]
+}

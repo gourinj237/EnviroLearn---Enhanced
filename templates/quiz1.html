@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planet Protector Basics</title>
+
+<style>
+body{
+    margin:0;
+    font-family:'Courier New', Courier, monospace;
+    min-height:100vh;
+    background: linear-gradient(120deg,#a8e063,#56ab2f);
+    color:#222;
+}
+.container{
+    max-width:800px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+h1{text-align:center;}
+#question{font-size:20px;margin-bottom:20px;}
+.option{
+    display:block;
+    background:#f1f1f1;
+    margin:10px 0;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+}
+.option:hover{background:#dff5e1;}
+#feedback{margin-top:15px;font-weight:bold;min-height:24px;}
+button{
+    padding:12px 20px;
+    margin-top:20px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#2ecc71;
+    color:white;
+    cursor:pointer;
+}
+.btnRow{display:flex;justify-content:flex-end;}
+#scoreBox{text-align:right;font-weight:bold;}
+#endScreen{text-align:center;display:none;}
+.correct{background:#2ecc71 !important;color:white;}
+.wrong{background:#e74c3c !important;color:white;}
+
+/* Top Right Back Button */
+.top-right{
+    position:absolute;
+    top:20px;
+    right:30px;
+}
+
+.back-btn{
+    background:white;
+    color:#2ecc71;
+    padding:10px 18px;
+    font-size:15px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#e8fff1;
+    transform:scale(1.05);
+}
+
+/* Top Right Back Button */
+.top-right{
+    position:absolute;
+    top:20px;
+    right:30px;
+}
+
+.back-btn{
+    background:white;
+    color:#2ecc71;
+    padding:10px 18px;
+    font-size:15px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#e8fff1;
+    transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+<div class="top-right">
+    <button class="back-btn" onclick="goBack()">Back</button>
+</div>
+<div class="container" id="quizBox">
+<h1>🌱 Planet Protector Basics</h1>
+
+<div id="scoreBox">
+Score: <span id="score">0</span>/10
+</div>
+
+<div id="question"></div>
+<div id="options"></div>
+<div id="feedback"></div>
+
+<div class="btnRow">
+    <button onclick="nextQuestion()">Next</button>
+</div>
+</div>
+
+<div class="container" id="endScreen">
+    <h1>🎉 Great Job Earth Hero!</h1>
+    <h2 id="finalScore"></h2>
+    <p id="message"></p>
+</div>
+
+<!-- Hidden Form -->
+<form id="quizForm" method="POST" action="/save-quiz1-score">
+    <input type="hidden" name="score" id="quizFinalScore">
+</form>
+
+<script>
+const quiz=[
+{q:"What planet do we live on?",o:["Mars","Earth","Venus","Jupiter"],a:1},
+{q:"Which of these helps protect the Earth?",o:["Littering","Wasting water","Recycling","Burning plastic"],a:2},
+{q:"Turning off lights saves:",o:["Trees","Energy","Cars","Sand"],a:1},
+{q:"Plants give us:",o:["Plastic","Oxygen","Smoke","Metal"],a:1},
+{q:"Which is a renewable resource?",o:["Coal","Oil","Sunlight","Gas"],a:2},
+{q:"Putting trash in bins helps:",o:["Pollution increase","Animals","Clean environment","Nothing"],a:2},
+{q:"Water should be:",o:["Wasted","Saved","Ignored","Colored"],a:1},
+{q:"Which harms the planet?",o:["Planting trees","Recycling","Littering","Saving water"],a:2},
+{q:"Trees are important because they:",o:["Make noise","Clean air","Break roads","Eat trash"],a:1},
+{q:"Protecting Earth makes us:",o:["Careless","Lost","Sleepy","Heroes"],a:3}
+];
+
+let index=0,score=0,answered=false;
+
+function loadQuestion(){
+answered=false;
+document.getElementById("feedback").textContent="";
+let q=quiz[index];
+document.getElementById("question").textContent=q.q;
+let optionsHTML="";
+q.o.forEach((opt,i)=>{
+optionsHTML+=`<div class="option" onclick="select(${i})">${opt}</div>`;
+});
+document.getElementById("options").innerHTML=optionsHTML;
+}
+
+function select(i){
+if(answered)return;
+answered=true;
+let correct=quiz[index].a;
+let optionDivs=document.querySelectorAll(".option");
+optionDivs.forEach((div,idx)=>{
+if(idx===correct)div.classList.add("correct");
+if(idx===i&&i!==correct)div.classList.add("wrong");
+div.style.pointerEvents="none";
+});
+if(i===correct){score++;document.getElementById("feedback").textContent="🌟 Awesome!";}
+else{document.getElementById("feedback").textContent="💚 Nice try!";}
+document.getElementById("score").textContent=score;
+}
+
+function nextQuestion(){
+if(!answered)return;
+index++;
+if(index>=quiz.length){endQuiz();return;}
+loadQuestion();
+}
+
+function endQuiz(){
+document.getElementById("quizBox").style.display="none";
+document.getElementById("endScreen").style.display="block";
+
+document.getElementById("finalScore").textContent=
+"You scored "+score+" out of "+quiz.length;
+
+document.getElementById("quizFinalScore").value=score;
+document.getElementById("quizForm").submit();
+}
+
+loadQuestion();
+
+function goBack(){
+    window.location.href = "{{ url_for('quizzes') }}";
+}
+</script>
+
+</body>
+</html>

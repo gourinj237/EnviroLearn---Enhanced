@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Waste Segregation Game</title>
+
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            background-image: url("{{ url_for('static', filename='back.png') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        h1 { margin-top: 20px; }
+
+        #scoreBoard {
+            font-size: 26px;
+            font-weight: bold;
+            background: #ffffffee;
+            padding: 12px 28px;
+            border-radius: 14px;
+            display: inline-block;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        }
+
+        #wasteItem {
+            width: 170px;
+            margin: 12px;
+            cursor: grab;
+            transition: transform .2s;
+        }
+
+        #wasteItem:hover { transform: scale(1.12); }
+
+        #feedback {
+            height: 24px;
+            font-weight: bold;
+            margin-top: 6px;
+        }
+
+        #bins {
+            display: flex;
+            justify-content: center;
+            gap: 60px;
+            margin-top: 25px;
+        }
+
+        .bin img { width: 135px; }
+
+        .bin {
+            border-radius: 15px;
+            padding: 10px;
+        }
+
+        .bin.hovered { background: #ecffe9; }
+
+        .hidden { display: none; }
+
+        #finalScreen { margin-top: 80px; }
+
+        #finalScreen h2 { font-size: 32px; }
+
+        button {
+            font-family: 'Courier New', Courier, monospace;
+            padding: 12px 25px;
+            font-size: 18px;
+            border-radius: 8px;
+            border: none;
+            background: #2e7d32;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover { background: #1b5e20; }
+    </style>
+</head>
+
+<body>
+
+<h1>♻ Waste Segregation Game ♻</h1>
+
+<div id="scoreBoard">
+    Score: <span id="score">0</span>
+</div>
+
+<div id="gameArea">
+
+    <div id="itemArea">
+        <p>Drag this item to the correct bin</p>
+        <img id="wasteItem" draggable="true">
+        <p id="itemName"></p>
+        <p id="feedback"></p>
+    </div>
+
+    <div id="bins">
+        <div class="bin" data-type="dry">
+            <img src="{{ url_for('static', filename='blue.jpeg') }}">
+            <p>Dry Waste</p>
+        </div>
+
+        <div class="bin" data-type="wet">
+            <img src="{{ url_for('static', filename='green.jpeg') }}">
+            <p>Wet Waste</p>
+        </div>
+
+        <div class="bin" data-type="ewaste">
+            <img src="{{ url_for('static', filename='red.jpeg') }}">
+            <p>E-Waste</p>
+        </div>
+    </div>
+
+</div>
+
+<div id="finalScreen" class="hidden">
+    <h2 id="finalMessage"></h2>
+
+    <button onclick="restartGame()">Play Again</button>
+    <button onclick="goBack()">Back to Games</button>
+</div>
+
+<script>
+
+const items = [
+    {name:"Banana Peel", type:"wet", img:"{{ url_for('static', filename='banana.jpeg') }}"},
+    {name:"Plastic Bottle", type:"dry", img:"{{ url_for('static', filename='bottle.jpeg') }}"},
+    {name:"Old Mobile", type:"ewaste", img:"{{ url_for('static', filename='mobile.jpeg') }}"},
+    {name:"Paper", type:"dry", img:"{{ url_for('static', filename='paper.jpeg') }}"},
+    {name:"Vegetable Scraps", type:"wet", img:"{{ url_for('static', filename='veggies.jpeg') }}"}
+];
+
+let score = 0;
+let index = 0;
+let scoreSubmitted = false;
+
+const itemImg = document.getElementById("wasteItem");
+const itemName = document.getElementById("itemName");
+const scoreText = document.getElementById("score");
+const feedback = document.getElementById("feedback");
+const bins = document.querySelectorAll(".bin");
+
+function loadItem(){
+    if(index >= items.length){
+        endGame();
+        return;
+    }
+
+    itemImg.src = items[index].img;
+    itemName.textContent = items[index].name;
+    feedback.textContent = "";
+}
+
+itemImg.addEventListener("dragstart", e=>{
+    e.dataTransfer.setData("type", items[index].type);
+});
+
+bins.forEach(bin=>{
+
+    bin.addEventListener("dragover", e=>{
+        e.preventDefault();
+        bin.classList.add("hovered");
+    });
+
+    bin.addEventListener("dragleave", ()=>{
+        bin.classList.remove("hovered");
+    });
+
+    bin.addEventListener("drop", e=>{
+        e.preventDefault();
+        bin.classList.remove("hovered");
+
+        const correct = e.dataTransfer.getData("type");
+        const chosen = bin.dataset.type;
+
+        if(correct === chosen){
+            score += 10;
+            feedback.textContent = "✔ Correct! Great sorting!";
+            feedback.style.color = "green";
+        } else {
+            feedback.textContent = "✖ Not quite — try the next one!";
+            feedback.style.color = "red";
+        }
+
+        scoreText.textContent = score;
+        index++;
+        setTimeout(loadItem, 900);
+    });
+
+});
+
+function endGame(){
+
+    document.getElementById("gameArea").style.display = "none";
+
+    document.getElementById("finalMessage").innerHTML =
+        `🌱 Amazing Work! 🌱<br><br>
+        Final Score: ${score}<br><br>
+        You helped protect our planet! ♻`;
+
+    document.getElementById("finalScreen").classList.remove("hidden");
+
+    if(!scoreSubmitted){
+        sendScoreToBackend();
+        scoreSubmitted = true;
+    }
+}
+
+function sendScoreToBackend(){
+
+    const data = new FormData();
+    data.append("game_name", "Waste Segregation");
+    data.append("score", score);
+
+    fetch("/save-game-score", {
+        method: "POST",
+        body: data
+    });
+}
+
+function restartGame(){
+    score = 0;
+    index = 0;
+    scoreSubmitted = false;
+    scoreText.textContent = score;
+
+    document.getElementById("finalScreen").classList.add("hidden");
+    document.getElementById("gameArea").style.display = "block";
+
+    loadItem();
+}
+
+loadItem();
+
+function goBack(){
+    window.location.href = "{{ url_for('games') }}";
+}
+
+</script>
+
+</body>
+</html>

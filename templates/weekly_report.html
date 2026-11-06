@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📅 Weekly Report | EnviroLearn</title>
+<!-- jsPDF for PDF download (browser-side, no server needed) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Segoe UI', 'Courier New', monospace;background:#f4f7f6;}
+
+/* ── Header bar ── */
+.header-bar{
+    background:linear-gradient(to right,#4caf50,#2e7d32);
+    color:white;
+    padding:18px 30px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:12px;
+}
+.header-bar h1{font-size:22px;}
+.btn{
+    padding:9px 18px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:bold;
+    font-family:inherit;
+    transition:0.2s;
+}
+.btn-white{background:white;color:#2e7d32;}
+.btn-white:hover{background:#e8f5e9;}
+.btn-blue{background:#1565c0;color:white;}
+.btn-blue:hover{background:#0d47a1;}
+.btn-pdf{background:#c62828;color:white;}
+.btn-pdf:hover{background:#b71c1c;}
+
+.container{max-width:1100px;margin:25px auto;padding:0 20px;}
+
+/* ── Filter form ── */
+.filter-card{
+    background:white;
+    border-radius:14px;
+    padding:22px 26px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+    margin-bottom:24px;
+}
+.filter-card h3{color:#2e7d32;margin-bottom:15px;font-size:17px;}
+.filter-row{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;}
+.filter-row label{font-size:13px;color:#555;display:block;margin-bottom:4px;}
+.filter-row select,
+.filter-row input[type="date"]{
+    padding:9px 12px;
+    border:1px solid #ccc;
+    border-radius:8px;
+    font-size:14px;
+    font-family:inherit;
+    background:#fafafa;
+}
+.filter-row button{padding:9px 20px;}
+
+/* ── Summary cards ── */
+.summary-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+    gap:16px;
+    margin-bottom:24px;
+}
+.sum-card{
+    background:white;
+    border-radius:12px;
+    padding:18px 16px;
+    text-align:center;
+    box-shadow:0 3px 10px rgba(0,0,0,0.07);
+    border-top:4px solid #4caf50;
+}
+.sum-card .num{font-size:28px;font-weight:bold;color:#2e7d32;}
+.sum-card .lbl{font-size:12px;color:#777;margin-top:4px;}
+
+/* ── Table ── */
+.table-card{
+    background:white;
+    border-radius:14px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.08);
+    overflow:hidden;
+    margin-bottom:30px;
+}
+.table-card h3{
+    padding:16px 20px;
+    border-bottom:1px solid #eee;
+    color:#2e7d32;
+    font-size:16px;
+}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+thead{background:#e8f5e9;}
+th{padding:12px 14px;text-align:left;color:#2e7d32;font-weight:600;white-space:nowrap;}
+td{padding:11px 14px;border-bottom:1px solid #f0f0f0;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#f9fffe;}
+.rank-badge{
+    background:#2e7d32;color:white;
+    border-radius:50%;width:26px;height:26px;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:12px;font-weight:bold;
+}
+.rank-badge.gold{background:#f9a825;}
+.rank-badge.silver{background:#90a4ae;}
+.rank-badge.bronze{background:#8d6e63;}
+.status-pill{
+    padding:3px 10px;border-radius:12px;font-size:12px;font-weight:600;
+}
+.pill-green{background:#e8f5e9;color:#2e7d32;}
+.pill-yellow{background:#fff8e1;color:#f57f17;}
+.pill-red{background:#ffebee;color:#c62828;}
+
+.placeholder{
+    text-align:center;padding:60px 20px;color:#888;
+}
+.placeholder .icon{font-size:50px;margin-bottom:12px;}
+
+/* ── Responsive ── */
+@media(max-width:700px){
+    .filter-row{flex-direction:column;}
+    .summary-grid{grid-template-columns:1fr 1fr;}
+    table{font-size:12px;}
+    th,td{padding:9px 10px;}
+}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header-bar">
+    <div>
+        <h1>📅 Weekly Student Performance Report</h1>
+        <p style="font-size:13px;opacity:0.85;margin-top:3px;">EnviroLearn – Teacher Dashboard</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        {% if students %}
+        <button class="btn btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+        {% endif %}
+        <a href="{{ url_for('teacherviewreport') }}" class="btn btn-white" style="text-decoration:none;">
+            ← Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="container" id="reportContent">
+
+    <!-- Filter form -->
+    <div class="filter-card">
+        <h3>🔍 Generate Report</h3>
+        <form method="GET" action="{{ url_for('teacher_weekly_report') }}">
+            <div class="filter-row">
+                <div>
+                    <label>Class</label>
+                    <select name="class" required>
+                        <option value="">-- Select Class --</option>
+                        {% for c in all_classes %}
+                        <option value="{{ c }}" {% if c == selected_class %}selected{% endif %}>{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>From Date</label>
+                    <input type="date" name="from" value="{{ from_date }}" required>
+                </div>
+                <div>
+                    <label>To Date</label>
+                    <input type="date" name="to" value="{{ to_date }}" required>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-white" style="background:#2e7d32;color:white;">
+                        📊 Generate
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {% if students is none %}
+    <!-- Placeholder before generating -->
+    <div class="placeholder">
+        <div class="icon">📋</div>
+        <h3>Select a class and date range to generate the weekly report.</h3>
+    </div>
+
+    {% elif students|length == 0 %}
+    <div class="placeholder">
+        <div class="icon">🔍</div>
+        <h3>No students found in class <strong>{{ selected_class }}</strong>.</h3>
+    </div>
+
+    {% else %}
+
+    <!-- Class Summary -->
+    {% if class_summary %}
+    <div class="summary-grid">
+        <div class="sum-card">
+            <div class="num">{{ class_summary.total_students }}</div>
+            <div class="lbl">👨‍🎓 Total Students</div>
+        </div>
+        <div class="sum-card">
+            <div class="num">{{ class_summary.avg_weekly_xp }}</div>
+            <div class="lbl">⭐ Avg Weekly XP</div>
+        </div>
+        <div class="sum-card">
+            <div class="num">{{ class_summary.total_videos_watched }}</div>
+            <div class="lbl">🎥 Videos Completed</div>
+        </div>
+        <div class="sum-card">
+            <div class="num">{{ class_summary.total_quizzes_taken }}</div>
+            <div class="lbl">📝 Quizzes Taken</div>
+        </div>
+        <div class="sum-card">
+            <div class="num">{{ class_summary.total_challenges_done }}</div>
+            <div class="lbl">✅ Challenges Verified</div>
+        </div>
+        <div class="sum-card" style="border-top-color:#f9a825;">
+            <div class="num" style="color:#f57f17;font-size:16px;">{{ class_summary.top_student }}</div>
+            <div class="lbl">🏆 Top Student</div>
+        </div>
+    </div>
+    <p style="text-align:right;font-size:12px;color:#999;margin-bottom:14px;">
+        Class: <strong>{{ selected_class }}</strong> &nbsp;|&nbsp;
+        Period: <strong>{{ from_date }}</strong> → <strong>{{ to_date }}</strong>
+    </p>
+    {% endif %}
+
+    <!-- Student Table -->
+    <div class="table-card">
+        <h3>👨‍🎓 Individual Student Report — Class {{ selected_class }}</h3>
+        <div style="overflow-x:auto;">
+        <table id="reportTable">
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Student Name</th>
+                    <th>ID</th>
+                    <th>Videos ✅</th>
+                    <th>Quizzes 📝</th>
+                    <th>Best Quiz Score</th>
+                    <th>Challenges Submitted</th>
+                    <th>Verified ✅</th>
+                    <th>Pending ⏳</th>
+                    <th>Rejected ❌</th>
+                    <th>Weekly XP ⭐</th>
+                    <th>Badges 🏅</th>
+                    <th>Last Login</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in students %}
+                <tr>
+                    <td>
+                        {% if s.rank == 1 %}
+                            <span class="rank-badge gold">1</span>
+                        {% elif s.rank == 2 %}
+                            <span class="rank-badge silver">2</span>
+                        {% elif s.rank == 3 %}
+                            <span class="rank-badge bronze">3</span>
+                        {% else %}
+                            <span class="rank-badge">{{ s.rank }}</span>
+                        {% endif %}
+                    </td>
+                    <td><strong>{{ s.name }}</strong></td>
+                    <td style="color:#888;">#{{ s.id }}</td>
+                    <td>{{ s.videos_completed }}</td>
+                    <td>{{ s.dyn_quiz_attempts }}</td>
+                    <td>
+                        {% if s.dyn_quiz_best_score > 0 %}
+                            <span class="status-pill pill-green">{{ s.dyn_quiz_best_score }}</span>
+                        {% else %}—{% endif %}
+                    </td>
+                    <td>{{ s.challenges_submitted }}</td>
+                    <td><span class="status-pill pill-green">{{ s.challenges_verified }}</span></td>
+                    <td>
+                        {% if s.challenges_pending > 0 %}
+                            <span class="status-pill pill-yellow">{{ s.challenges_pending }}</span>
+                        {% else %}0{% endif %}
+                    </td>
+                    <td>
+                        {% if s.challenges_rejected > 0 %}
+                            <span class="status-pill pill-red">{{ s.challenges_rejected }}</span>
+                        {% else %}0{% endif %}
+                    </td>
+                    <td><strong style="color:#2e7d32;">{{ s.weekly_xp }}</strong></td>
+                    <td>
+                        {% for b in s.badges %}
+                            {% if b == 'seedling' %}🌱
+                            {% elif b == 'recycling' %}♻️
+                            {% elif b == 'energy' %}⚡
+                            {% elif b == 'nature' %}🌿
+                            {% elif b == 'eco' %}🌍
+                            {% elif b == 'discipline' %}📚
+                            {% elif b == 'water' %}💧
+                            {% elif b == 'earth' %}🌎
+                            {% elif b == 'ultimate' %}🏆
+                            {% else %}🏅{% endif %}
+                        {% else %}—{% endfor %}
+                    </td>
+                    <td style="font-size:12px;color:#888;">{{ s.last_login }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// ── PDF Download using jsPDF ──────────────────────────────────
+function downloadPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+    const title   = "EnviroLearn – Weekly Student Report";
+    const subtitle = `Class: {{ selected_class }} | Period: {{ from_date }} to {{ to_date }}`;
+    const generated = `Generated: ${new Date().toLocaleString()}`;
+
+    // Header
+    doc.setFillColor(46, 125, 50);
+    doc.rect(0, 0, 297, 20, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title, 14, 13);
+
+    // Subtitle
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.text(subtitle, 14, 25);
+    doc.setTextColor(150, 150, 150);
+    doc.text(generated, 14, 30);
+    doc.setTextColor(0, 0, 0);
+
+    // Summary row
+    {% if class_summary %}
+    const summary = [
+        ["Total Students", "Avg Weekly XP", "Videos Completed", "Quizzes Taken", "Challenges Verified", "Top Student"],
+        [
+            "{{ class_summary.total_students }}",
+            "{{ class_summary.avg_weekly_xp }}",
+            "{{ class_summary.total_videos_watched }}",
+            "{{ class_summary.total_quizzes_taken }}",
+            "{{ class_summary.total_challenges_done }}",
+            "{{ class_summary.top_student }}"
+        ]
+    ];
+    doc.autoTable({
+        startY: 35,
+        head: [summary[0]],
+        body: [summary[1]],
+        theme: 'grid',
+        headStyles: { fillColor: [200, 230, 201], textColor: [27, 94, 32], fontStyle: 'bold' },
+        styles: { fontSize: 9, cellPadding: 3 },
+    });
+    {% endif %}
+
+    // Student table
+    const headers = ["#", "Name", "Videos", "Quizzes", "Best Score", "Submitted", "Verified", "Pending", "Rejected", "Weekly XP", "Badges", "Last Login"];
+    const rows = [
+        {% for s in students %}
+        [
+            "{{ s.rank }}",
+            "{{ s.name }}",
+            "{{ s.videos_completed }}",
+            "{{ s.dyn_quiz_attempts }}",
+            "{{ s.dyn_quiz_best_score }}",
+            "{{ s.challenges_submitted }}",
+            "{{ s.challenges_verified }}",
+            "{{ s.challenges_pending }}",
+            "{{ s.challenges_rejected }}",
+            "{{ s.weekly_xp }}",
+            "{{ s.badges|length }} badge(s)",
+            "{{ s.last_login }}"
+        ],
+        {% endfor %}
+    ];
+
+    const prevY = doc.lastAutoTable ? doc.lastAutoTable.finalY + 8 : 60;
+    doc.autoTable({
+        startY: prevY,
+        head: [headers],
+        body: rows,
+        theme: 'striped',
+        headStyles: { fillColor: [46, 125, 50], textColor: 255, fontStyle: 'bold' },
+        alternateRowStyles: { fillColor: [240, 248, 240] },
+        styles: { fontSize: 8, cellPadding: 2.5 },
+        columnStyles: { 9: { fontStyle: 'bold', textColor: [27, 94, 32] } }
+    });
+
+    // Footer
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Page ${i} of ${pageCount} | EnviroLearn`, 14, doc.internal.pageSize.height - 8);
+    }
+
+    doc.save(`EnviroLearn_WeeklyReport_{{ selected_class }}_{{ from_date }}_to_{{ to_date }}.pdf`);
+}
+</script>
+
+</body>
+</html>

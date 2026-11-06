@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a6b3c">
+    <title>🧒 Student Login</title>
+    <style>
+        body { min-height: 100svh; }
+                                                  
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --green-dark:   #1a6b3c;
+    --green-mid:    #27a85f;
+    --green-light:  #4dd68c;
+    --green-pale:   #d4f5e5;
+    --earth-brown:  #7c5c2e;
+    --sky-blue:     #e8f7ff;
+    --white:        #ffffff;
+    --text-dark:    #1a2e1e;
+    --text-mid:     #3d5945;
+    --text-light:   #6b8f77;
+    --error-red:    #c0392b;
+    --success-grn:  #1e8449;
+    --warning-org:  #e67e22;
+    --shadow-sm:    0 2px 8px rgba(26,107,60,0.12);
+    --shadow-md:    0 8px 28px rgba(26,107,60,0.18);
+    --shadow-lg:    0 16px 48px rgba(26,107,60,0.22);
+    --radius:       16px;
+    --radius-sm:    10px;
+    --transition:   0.25s cubic-bezier(0.4,0,0.2,1);
+}
+
+html {
+    font-size: 16px;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Courier New', Courier, monospace;
+    background: url("{{ url_for('static', filename='loginbg.jpg') }}") no-repeat center center fixed;
+    background-size: cover;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+
+body::before {
+    content: '';
+    position: fixed;
+    top: -80px;
+    right: -80px;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(39,168,95,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    bottom: -60px;
+    left: -60px;
+    width: 260px;
+    height: 260px;
+    background: radial-gradient(circle, rgba(77,214,140,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+
+.container {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 36px 32px;
+    width: 100%;
+    max-width: 440px;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+    border: 1.5px solid rgba(39,168,95,0.15);
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(28px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+
+.container h2 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(1.4rem, 5vw, 1.75rem);
+    font-weight: 700;
+    color: var(--green-dark);
+    text-align: center;
+    margin-bottom: 24px;
+    letter-spacing: -0.3px;
+}
+
+.flashes {
+    list-style: none;
+    margin-bottom: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.flashes li {
+    padding: 11px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 0.88rem;
+    font-weight: 600;
+    line-height: 1.4;
+    border-left: 4px solid;
+    animation: fadeIn 0.3s ease both;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+
+.flashes li:has-text("⚠") {
+    background: #fff4f4;
+    color: var(--error-red);
+    border-color: var(--error-red);
+}
+
+.flashes li {
+    background: #f0fdf4;
+    color: var(--success-grn);
+    border-color: var(--green-mid);
+}
+
+
+.flashes li:nth-child(n) {
+    background: #f0fdf4;
+    color: #155724;
+    border-color: var(--green-mid);
+}
+
+
+.flash-error {
+    background: #fff4f4 !important;
+    color: var(--error-red) !important;
+    border-color: var(--error-red) !important;
+}
+.flash-success {
+    background: #f0fdf4 !important;
+    color: var(--success-grn) !important;
+    border-color: var(--green-mid) !important;
+}
+
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 13px 16px;
+    border: 2px solid #c8e6d4;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.97rem;
+    color: var(--text-dark);
+    background: #fafffe;
+    transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+input[type="text"]::placeholder,
+input[type="email"]::placeholder,
+input[type="password"]::placeholder {
+    color: #a0bfa9;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: var(--green-mid);
+    background: var(--white);
+    box-shadow: 0 0 0 3px rgba(39,168,95,0.15);
+}
+
+
+button[type="submit"],
+form > button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-dark) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition), opacity var(--transition);
+    box-shadow: 0 4px 14px rgba(26,107,60,0.3);
+    letter-spacing: 0.3px;
+    margin-top: 4px;
+}
+
+button[type="submit"]:hover,
+form > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(26,107,60,0.38);
+}
+
+button[type="submit"]:active,
+form > button:active {
+    transform: translateY(0);
+    opacity: 0.93;
+}
+
+/* ===== LINKS ===== */
+.forgot, div.forgot {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: var(--text-mid);
+}
+
+.forgot a, div.forgot a {
+    color: var(--green-dark);
+    font-weight: 700;
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.forgot a:hover, div.forgot a:hover {
+    color: var(--green-mid);
+    text-decoration: underline;
+}
+
+div.forgot[onclick] {
+    cursor: pointer;
+    color: var(--green-dark);
+    font-weight: 600;
+    transition: color var(--transition);
+    margin-top: 12px;
+}
+
+div.forgot[onclick]:hover {
+    color: var(--green-mid);
+    text-decoration: underline;
+}
+
+
+.container > div:not(.forgot):not(.modal) {
+    text-align: center;
+    margin-top: 14px;
+    font-size: 0.9rem;
+    color: var(--text-mid);
+}
+
+.container > div:not(.forgot):not(.modal) a {
+    color: var(--green-dark);
+    font-weight: 700;
+    text-decoration: none;
+    transition: color var(--transition);
+}
+
+.container > div:not(.forgot):not(.modal) a:hover {
+    color: var(--green-mid);
+    text-decoration: underline;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 40, 20, 0.55);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    animation: fadeInOverlay 0.2s ease both;
+}
+
+.modal[style*="block"] {
+    display: flex !important;
+}
+
+@keyframes fadeInOverlay {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.modal-content {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    width: 100%;
+    max-width: 380px;
+    position: relative;
+    box-shadow: var(--shadow-lg);
+    animation: modalPop 0.3s cubic-bezier(0.34,1.56,0.64,1) both;
+    border: 1.5px solid rgba(39,168,95,0.18);
+}
+
+@keyframes modalPop {
+    from { opacity: 0; transform: scale(0.88) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-content h3 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--green-dark);
+    margin-bottom: 18px;
+    text-align: center;
+}
+
+.modal-content input[type="email"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #c8e6d4;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.95rem;
+    color: var(--text-dark);
+    background: #fafffe;
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color var(--transition), box-shadow var(--transition);
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.modal-content input[type="email"]:focus {
+    border-color: var(--green-mid);
+    box-shadow: 0 0 0 3px rgba(39,168,95,0.15);
+}
+
+.modal-content button {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, var(--green-mid) 0%, var(--green-dark) 100%);
+    color: var(--white);
+    border: none;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.97rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform var(--transition), box-shadow var(--transition);
+    box-shadow: 0 4px 14px rgba(26,107,60,0.3);
+}
+
+.modal-content button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 7px 20px rgba(26,107,60,0.38);
+}
+
+.close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    font-size: 1.5rem;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: 700;
+    line-height: 1;
+    transition: color var(--transition), transform var(--transition);
+    z-index: 2;
+}
+
+.close:hover {
+    color: var(--error-red);
+    transform: rotate(90deg);
+}
+
+#resetMsg {
+    margin-top: 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--success-grn);
+    min-height: 20px;
+}
+
+/* ===== ROLE PAGE (role.html) ===== */
+.role-container {
+    background: var(--white);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    padding: 44px 32px;
+    width: 100%;
+    max-width: 460px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.5s cubic-bezier(0.4,0,0.2,1) both;
+    border: 1.5px solid rgba(39,168,95,0.15);
+}
+
+.role-container h1 {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: clamp(1.5rem, 5.5vw, 2rem);
+    font-weight: 800;
+    color: var(--green-dark);
+    margin-bottom: 8px;
+}
+
+.role-container .tagline {
+    color: var(--text-light);
+    font-size: 0.95rem;
+    margin-bottom: 32px;
+}
+
+.role-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.role-btn {
+    display: block;
+    padding: 16px 24px;
+    border-radius: var(--radius-sm);
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.05rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform var(--transition), box-shadow var(--transition);
+    letter-spacing: 0.2px;
+}
+
+.role-btn.student {
+    background: linear-gradient(135deg, #27a85f 0%, #1a6b3c 100%);
+    color: var(--white);
+    box-shadow: 0 5px 18px rgba(26,107,60,0.32);
+}
+
+.role-btn.teacher {
+    background: linear-gradient(135deg, #4dd68c 0%, #27a85f 100%);
+    color: var(--white);
+    box-shadow: 0 5px 18px rgba(77,214,140,0.35);
+}
+
+.role-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(26,107,60,0.38);
+}
+
+
+@media (max-width: 480px) {
+    body {
+        padding: 12px;
+        align-items: flex-start;
+        padding-top: 24px;
+    }
+
+    .container {
+        padding: 28px 20px;
+        border-radius: 14px;
+    }
+
+    .container h2 {
+        font-size: 1.3rem;
+        margin-bottom: 20px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+        padding: 12px 14px;
+        font-size: 0.95rem;
+        /* Prevent iOS zoom on focus */
+        font-size: max(16px, 0.95rem);
+    }
+
+    button[type="submit"],
+    form > button {
+        padding: 13px;
+        font-size: 0.97rem;
+    }
+
+    .modal-content {
+        padding: 26px 20px;
+    }
+
+    .role-container {
+        padding: 32px 20px;
+    }
+}
+
+/* Very small phones */
+@media (max-width: 360px) {
+    .container {
+        padding: 22px 15px;
+    }
+
+    .container h2 {
+        font-size: 1.15rem;
+    }
+
+    form {
+        gap: 11px;
+    }
+}
+
+@media (min-width: 600px) {
+    .role-buttons {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .role-btn {
+        flex: 1;
+        max-width: 180px;
+    }
+}
+
+@media (hover: none) and (pointer: coarse) {
+    button[type="submit"]:hover,
+    form > button:hover,
+    .role-btn:hover,
+    .modal-content button:hover {
+        transform: none;
+    }
+
+    button[type="submit"]:active,
+    form > button:active {
+        transform: scale(0.97);
+    }
+
+    .role-btn:active {
+        transform: scale(0.97);
+    }
+}
+
+
+@supports (padding: max(0px)) {
+    body {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: max(16px, env(safe-area-inset-bottom));
+    }
+}
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🧒 Student Login</h2>
+
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+        {% for message in messages %}
+          <li>{{ message }}</li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+
+    <form method="POST" action="{{ url_for('student_login') }}" onsubmit="return validateStudent()">
+
+        <input type="text"
+               id="name"
+               name="name"
+               placeholder="Full Name"
+               autocomplete="name"
+               required>
+
+        <input type="text"
+               id="class"
+               name="class"
+               placeholder="Class (e.g. 4A)"
+               autocomplete="off"
+               required>
+
+        <input type="email"
+               id="email"
+               name="email"
+               placeholder="Email (@gmail.com only)"
+               autocomplete="email"
+               inputmode="email"
+               required>
+
+        <input type="password"
+               id="password"
+               name="password"
+               placeholder="Password"
+               autocomplete="current-password"
+               required>
+
+        <button type="submit">Login</button>
+    </form>
+
+    <div class="forgot">
+        Don't have an account? <a href="{{ url_for('student_signup') }}">Sign Up</a>
+    </div>
+
+    <div class="forgot" onclick="openModal()">Forgot Password?</div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div id="forgotModal" class="modal" role="dialog" aria-modal="true" aria-label="Reset Password">
+    <div class="modal-content">
+        <span class="close" onclick="closeModal()" aria-label="Close">&times;</span>
+        <h3>Reset Password</h3>
+        <input type="email" id="resetEmail" placeholder="Enter Gmail" inputmode="email" autocomplete="email">
+        <button onclick="sendReset()">Send Reset Link</button>
+        <p id="resetMsg" aria-live="polite"></p>
+    </div>
+</div>
+
+<script>
+function validateStudent() {
+    let name         = document.getElementById("name").value.trim();
+    let studentClass = document.getElementById("class").value.trim();
+    let email        = document.getElementById("email").value.trim();
+    let password     = document.getElementById("password").value.trim();
+
+    let emailPattern    = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    let passwordPattern = /^(?=.*[A-Z])(?=.*[0-9])(?=.*[\W]).{8,}$/;
+
+
+    if (name === "") {
+        alert("⚠️ Please enter your Name!");
+        return false;
+    }
+    if (studentClass === "") {
+        alert("⚠️ Please enter your Class (e.g. 1A)!");
+        return false;
+    }
+    if (email === "") {
+        alert("⚠️ Please enter your Email!");
+        return false;
+    }
+    if (!emailPattern.test(email)) {
+        alert("⚠️ Enter valid Gmail (example@gmail.com)");
+        return false;
+    }
+    if (password === "") {
+        alert("⚠️ Please enter your Password!");
+        return false;
+    }
+    if (!passwordPattern.test(password)) {
+        alert("⚠️ Password must be 8+ characters, include 1 Capital, 1 Number & 1 Special Character.");
+        return false;
+    }
+
+    return true; 
+}
+
+function openModal() {
+    document.getElementById("forgotModal").style.display = "block";
+    document.getElementById("resetEmail").focus();
+}
+function closeModal() {
+    document.getElementById("forgotModal").style.display = "none";
+    document.getElementById("resetMsg").innerText = "";
+}
+function sendReset() {
+    let resetEmail   = document.getElementById("resetEmail").value.trim();
+    let emailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
+    if (!emailPattern.test(resetEmail)) {
+        alert("⚠️ Enter valid Gmail address!");
+        return;
+    }
+    document.getElementById("resetMsg").innerText = "✅ Reset link sent successfully to your email!";
+}
+
+
+document.getElementById("forgotModal").addEventListener("click", function(e) {
+    if (e.target === this) closeModal();
+});
+
+
+document.addEventListener("keydown", function(e) {
+    if (e.key === "Escape") closeModal();
+});
+</script>
+
+</body>
+</html>

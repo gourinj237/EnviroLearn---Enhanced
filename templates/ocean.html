@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clean The Ocean</title>
+    <style>
+        body{
+            margin:0;
+            font-family:'Courier New', Courier, monospace;
+            background:url("{{ url_for('static', filename='ocean-bg1.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .screen{
+            position:absolute;
+            width:100%;
+            height:100%;
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            background:rgba(0,0,0,0.55);
+            color:white;
+            text-align:center;
+        }
+
+        .panel{
+            background:rgba(0,0,0,0.6);
+            padding:40px;
+            border-radius:18px;
+            box-shadow:0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .hidden{ display:none; }
+
+        #topbar{
+            position:absolute;
+            top:15px;
+            left:50%;
+            transform:translateX(-50%);
+            background:rgba(0,0,0,0.7);
+            color:white;
+            padding:12px 28px;
+            border-radius:20px;
+            font-size:20px;
+            font-weight:bold;
+            z-index:2;
+        }
+
+        #ocean{
+            position:absolute;
+            width:100%;
+            height:100%;
+        }
+
+        .object{
+            position:absolute;
+            width:10vw;
+            max-width:170px;
+            min-width:150px;
+            cursor:pointer;
+            animation:float 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes float{
+            from{ transform:translateY(0px);}
+            to{ transform:translateY(-20px);}
+        }
+
+        button{
+            padding:12px 25px;
+            font-size:18px;
+            border:none;
+            border-radius:10px;
+            background:#00c896;
+            color:white;
+            cursor:pointer;
+        }
+
+        button:hover{
+            background:#00a87d;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- START SCREEN -->
+<div id="startScreen" class="screen">
+    <div class="panel">
+        <h1>🌊 Clean The Ocean!</h1>
+        <p>
+            🌊 Mission: Clean the Ocean!<br>
+            Tap the trash before it drifts away 🧹 (+10 points)<br>
+            Protect marine life — don’t hurt the animals 🐠 (-5 points)<br>
+            You have 30 seconds… let’s see how much you can save! 💙
+        </p>
+        <button id="startBtn">Start Game</button>
+    </div>
+</div>
+
+<!-- GAME UI -->
+<div id="gameUI" class="hidden">
+    <div id="topbar">
+        Score: <span id="score">0</span>
+        |
+        Time: <span id="time">30</span>
+    </div>
+    <div id="ocean"></div>
+</div>
+
+<!-- END SCREEN -->
+<div id="endScreen" class="screen hidden">
+    <div class="panel">
+        <h1>🌊 Ocean Hero 🐬</h1>
+        <h2 id="finalScore"></h2>
+        <p id="message"></p>
+
+        <button onclick="location.reload()">Play Again</button>
+        <button onclick="goBack()">Back to Games</button>
+    </div>
+</div>
+
+<!-- ✅ HIDDEN FORM TO SEND SCORE -->
+<form id="oceanScoreForm" method="POST" action="{{ url_for('save_ocean_score') }}">
+    <input type="hidden" name="score" id="hiddenOceanScore">
+</form>
+
+<script>
+
+const trash = [
+"{{ url_for('static', filename='bag.png') }}",
+"{{ url_for('static', filename='seabottle.png') }}",
+"{{ url_for('static', filename='can.png') }}",
+"{{ url_for('static', filename='anchor.png') }}",
+"{{ url_for('static', filename='plastic.png') }}",
+"{{ url_for('static', filename='tire.png') }}"
+];
+
+const animals = [
+"{{ url_for('static', filename='fish.png') }}",
+"{{ url_for('static', filename='turtle.png') }}",
+"{{ url_for('static', filename='starfish.png') }}",
+"{{ url_for('static', filename='dolphin.png') }}",
+"{{ url_for('static', filename='seal.png') }}",
+"{{ url_for('static', filename='jellyfish.png') }}"
+];
+
+let score=0;
+let time=30;
+let gameActive=false;
+let spawnInterval;
+let timerInterval;
+
+const ocean=document.getElementById("ocean");
+
+document.getElementById("startBtn").addEventListener("click", startGame);
+
+function startGame(){
+    document.getElementById("startScreen").classList.add("hidden");
+    document.getElementById("gameUI").classList.remove("hidden");
+
+    score=0;
+    time=30;
+    gameActive=true;
+
+    document.getElementById("score").textContent=score;
+    document.getElementById("time").textContent=time;
+
+    spawnInterval=setInterval(spawnObject,800);
+    timerInterval=setInterval(updateTimer,1000);
+}
+
+function spawnObject(){
+    if(!gameActive) return;
+
+    let img=document.createElement("img");
+
+    let isTrash=Math.random()>0.4;
+    let src=isTrash
+    ? trash[Math.floor(Math.random()*trash.length)]
+    : animals[Math.floor(Math.random()*animals.length)];
+
+    img.src=src;
+    img.className="object";
+
+    img.style.left=Math.random()*88+"%";
+    img.style.top=Math.random()*78+"%";
+
+    img.onclick=()=>{
+        if(!gameActive) return;
+
+        if(isTrash){ score+=10; }
+        else{ score-=5; }
+
+        document.getElementById("score").textContent=score;
+        img.remove();
+    };
+
+    ocean.appendChild(img);
+    setTimeout(()=>{img.remove()},7000);
+}
+
+function updateTimer(){
+    time--;
+    document.getElementById("time").textContent=time;
+
+    if(time<=0){ endGame(); }
+}
+
+function endGame(){
+    gameActive=false;
+
+    clearInterval(spawnInterval);
+    clearInterval(timerInterval);
+
+    document.getElementById("gameUI").classList.add("hidden");
+    document.getElementById("endScreen").classList.remove("hidden");
+
+    document.getElementById("finalScore").textContent="Final Score: "+score;
+
+    let message="";
+    if(score < 50)
+        message="Nice start! Every small action helps the ocean 💙";
+    else if(score < 150)
+        message="Great job! Marine life appreciates your effort 🐢";
+    else if(score < 300)
+        message="Amazing cleanup! You're protecting the ecosystem 🌱";
+    else
+        message="Legendary Ocean Guardian! The sea is proud of you 🌊✨";
+
+    document.getElementById("message").textContent=message;
+
+    // ✅ SEND SCORE TO BACKEND
+    document.getElementById("hiddenOceanScore").value = score;
+
+    // SEND SCORE TO BACKEND WITHOUT REDIRECT
+fetch("{{ url_for('save_ocean_score') }}", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+    },
+    body: "score=" + score
+});
+}
+function goBack(){
+    window.location.href = "{{ url_for('games') }}";
+}
+
+</script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather & Climate Explorers</title>
+
+<style>
+body{
+    margin:0;
+    font-family:'Courier New', Courier, monospace;
+    min-height:100vh;
+    background: linear-gradient(120deg, #a1c4fd, #c2e9fb);
+    color:#222;
+}
+
+.container{
+    max-width:800px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
+h1{ text-align:center; }
+
+#question{
+    font-size:20px;
+    margin-bottom:20px;
+}
+
+.option{
+    display:block;
+    background:#f1f1f1;
+    margin:10px 0;
+    padding:12px;
+    border-radius:8px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.option:hover{
+    background:#c2e9fb;
+}
+
+#feedback{
+    margin-top:15px;
+    font-weight:bold;
+    min-height:24px;
+}
+
+button{
+    padding:12px 20px;
+    margin-top:20px;
+    font-size:16px;
+    border:none;
+    border-radius:8px;
+    background:#629af4;
+    color:white;
+    cursor:pointer;
+}
+
+.btnRow{
+    display:flex;
+    justify-content:flex-end;
+}
+
+#scoreBox{
+    text-align:right;
+    font-weight:bold;
+}
+
+#endScreen{
+    text-align:center;
+    display:none;
+}
+
+.correct{
+    background:#2ecc71 !important;
+    color:white;
+}
+
+.wrong{
+    background:#e74c3c !important;
+    color:white;
+}
+
+/* Top Right Back Button */
+.top-right{
+    position:absolute;
+    top:20px;
+    right:30px;
+}
+
+.back-btn{
+    background:white;
+    color:#2ecc71;
+    padding:10px 18px;
+    font-size:15px;
+    font-weight:bold;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    box-shadow:0 4px 10px rgba(0,0,0,0.2);
+    transition:0.3s;
+}
+
+.back-btn:hover{
+    background:#e8fff1;
+    transform:scale(1.05);
+}
+</style>
+</head>
+
+<body>
+<div class="top-right">
+    <button class="back-btn" onclick="goBack()">Back</button>
+</div>
+<div class="container" id="quizBox">
+
+<h1>⛅ Weather & Climate Explorers</h1>
+
+<div id="scoreBox">
+Score: <span id="score">0</span>/10
+</div>
+
+<div id="question"></div>
+<div id="options"></div>
+<div id="feedback"></div>
+
+<div class="btnRow"> 
+    <button onclick="nextQuestion()">Next</button>
+</div> 
+
+</div>
+
+<div class="container" id="endScreen">
+    <h1>🌦️ Exploration Complete!</h1>
+    <h2 id="finalScore"></h2>
+    <p id="message"></p>
+    <button onclick="location.reload()">Play Again</button>
+</div>
+
+<script>
+
+const quiz = [
+{q:"Weather describes conditions over:",o:["Short time","Hundreds of years","Only oceans","Space"],a:0},
+{q:"Climate means:",o:["Daily temperature","Long-term weather patterns","Cloud shapes","Wind direction"],a:1},
+{q:"Which instrument measures temperature?",o:["Barometer","Thermometer","Compass","Hygrometer"],a:1},
+{q:"Rain forms from:",o:["Dry air","Cloud condensation","Sand","Smoke"],a:1},
+{q:"Greenhouse gases cause:",o:["Cooling only","Global warming","More snow always","No change"],a:1},
+{q:"Which is renewable energy helping climate?",o:["Coal","Solar power","Diesel","Petrol"],a:1},
+{q:"Melting ice caps affect:",o:["Sea levels","Moon phases","Stars","Soil color"],a:0},
+{q:"Wind direction is measured by:",o:["Wind vane","Thermometer","Scale","Clock"],a:0},
+{q:"Reducing emissions helps:",o:["Climate stability","Pollution rise","Ice melting faster","Storm increase"],a:0},
+{q:"Climate explorers study:",o:["Nature patterns","Video games","Cars only","Buildings"],a:0}
+];
+
+let index = 0;
+let score = 0;
+let answered = false;
+
+function loadQuestion(){
+    answered = false;
+    document.getElementById("feedback").textContent = "";
+    let q = quiz[index];
+    document.getElementById("question").textContent = q.q;
+
+    let optionsHTML = "";
+    q.o.forEach((opt,i)=>{
+        optionsHTML += `<div class="option" onclick="select(${i})">${opt}</div>`;
+    });
+
+    document.getElementById("options").innerHTML = optionsHTML;
+}
+
+function select(i){
+    if(answered) return;
+    answered = true;
+
+    let correct = quiz[index].a;
+    let optionDivs = document.querySelectorAll(".option");
+
+    optionDivs.forEach((div,idx)=>{
+        if(idx === correct) div.classList.add("correct");
+        if(idx === i && i !== correct) div.classList.add("wrong");
+        div.style.pointerEvents = "none";
+    });
+
+    if(i === correct){
+        score++;
+        document.getElementById("feedback").textContent =
+        "🌤️ Great observation!";
+    } else {
+        document.getElementById("feedback").textContent =
+        "💙 Keep exploring — scientists learn by trying!";
+    }
+
+    document.getElementById("score").textContent = score;
+}
+
+function nextQuestion(){
+    if(!answered) return;
+    index++;
+    if(index >= quiz.length){
+        endQuiz();
+        return;
+    }
+    loadQuestion();
+}
+
+function endQuiz(){
+    document.getElementById("quizBox").style.display = "none";
+    document.getElementById("endScreen").style.display = "block";
+
+    document.getElementById("finalScore").textContent =
+    "You scored " + score + " out of " + quiz.length;
+
+    let msg = "";
+    if(score === 10)
+        msg = "🏆 Outstanding! Climate expert level!";
+    else if(score >= 7)
+        msg = "⛅ Fantastic work exploring weather!";
+    else if(score >= 4)
+        msg = "🌱 Good effort — keep observing!";
+    else
+        msg = "💚 Exploration is learning — try again!";
+
+    document.getElementById("message").textContent = msg;
+
+    // ✅ SAVE SCORE TO BACKEND (MATCH YOUR FLASK ROUTE)
+    fetch("/save-quiz6-score", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: "score=" + score
+    })
+    .then(response => {
+        if(response.ok){
+            console.log("Score saved successfully");
+        } else {
+            console.log("Error saving score");
+        }
+    })
+    .catch(error => {
+        console.log("Network error:", error);
+    });
+}
+
+loadQuestion();
+function goBack(){
+    window.location.href = "{{ url_for('quizzes') }}";
+}
+</script>
+
+</body>
+</html>
