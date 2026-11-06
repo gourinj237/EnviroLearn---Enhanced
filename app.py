@@ -19,7 +19,7 @@ from models import (
     DynamicQuizAttempt,
     VIDEO_CATALOGUE, CHALLENGE_CATALOGUE
 )
-import gemini_service1
+import gemini_service
 import google.generativeai as genai
 
 app = Flask(__name__)
