@@ -19,13 +19,18 @@ from models import (
     DynamicQuizAttempt,
     VIDEO_CATALOGUE, CHALLENGE_CATALOGUE
 )
-import gemini_service
+import gemini_service1
+import google.generativeai as genai
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'secret123')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database_new3.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
+
+# Initialize all database tables
+with app.app_context():
+    db.create_all()
 
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -675,7 +680,7 @@ def submit_challenge(challenge_id):
     # ── FEATURE 2: AI IMAGE VERIFICATION ──────────────────────
     after_file.seek(0)   # reset stream after save_photo() read it
     image_bytes = after_file.read()
-    ai_result   = gemini_service.verify_image(image_bytes, challenge_id)
+    ai_result   = gemini_service1.verify_image(image_bytes, challenge_id)
 
     # Block clearly irrelevant uploads (high confidence threshold = 85%)
     if ai_result["status"] == "not_relevant" and (ai_result.get("confidence") or 0) > 0.85:
@@ -851,7 +856,7 @@ def generate_dynamic_quiz(video_id):
             pass
 
     try:
-        questions = gemini_service.generate_quiz(video_id, previous_questions)
+        questions = gemini_service1.generate_quiz(video_id, previous_questions)
         return jsonify({"questions": questions, "video_id": video_id})
     except EnvironmentError:
         return jsonify({"error": "Gemini API key not configured. Please set GEMINI_API_KEY in .env"}), 503
@@ -1108,6 +1113,4 @@ def award_badges(user_id, challenge_id):
 # ── RUN ──────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
     app.run(debug=True)
